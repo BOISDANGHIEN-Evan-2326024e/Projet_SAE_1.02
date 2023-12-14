@@ -1,6 +1,16 @@
+#define FPS_LIMIT 60
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include <thread>
+#include "mingl/mingl.h"
+#include "mingl/shape/rectangle.h"
+#include "mingl/shape/circle.h"
+#include "mingl/shape/line.h"
+#include "mingl/shape/triangle.h"
+#include "mingl/gui/sprite.h"
+
+
 
 using namespace std;
 
@@ -333,6 +343,40 @@ void Niveau_1(){
     }
 }
 
+void EcranAccueil(MinGL & window){
+    window << nsShape::Triangle(nsGraphics::Vec2D(300, 420), nsGraphics::Vec2D(500, 420), nsGraphics::Vec2D(400, 220), nsGraphics::KYellow);
+    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/SmashBall.svg.png",nsGraphics::Vec2D(300,300));
+
+}
+
 int main() {
+    MinGL Candy_Crush("Candy_Crush", nsGraphics::Vec2D(1000,1000), nsGraphics::Vec2D(1000, 1000), nsGraphics::KBlack);
+    Candy_Crush.initGlut();
+    Candy_Crush.initGraphic();
+    while (Candy_Crush.isOpen())
+    {
+        // Récupère l'heure actuelle
+        chrono::time_point<chrono::steady_clock> start = chrono::steady_clock::now();
+
+        // On efface la fenêtre
+        Candy_Crush.clearScreen();
+
+        // On dessine les formes géométriques
+        EcranAccueil(Candy_Crush);
+
+        // On finit la frame en cours
+        Candy_Crush.finishFrame();
+
+        // On vide la queue d'évènements
+        Candy_Crush.getEventManager().clearEvents();
+
+        // On attend un peu pour limiter le framerate et soulager le CPU
+        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
+
+        // On récupère le temps de frame
+        //frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
+
+    }
     Niveau_1();
+
 }
