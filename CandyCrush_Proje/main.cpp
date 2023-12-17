@@ -343,9 +343,34 @@ void Niveau_1(){
     }
 }
 
+void Niveau_1V2(){
+    CMatrice mat;
+    initMat(mat);
+    unsigned score=0;
+    while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
+    }
+    unsigned objectif=1500,nbTour=0,nbTourMax=10;
+    score=0;
+    while(true){
+        FaireUnTour(mat,score);
+        cout << "tu es au tour :" << nbTour << endl;
+        cout << "tu as "  << score << " points !" << endl;
+        nbTour=nbTour+1;
+        if(nbTour == nbTourMax){
+            cout << "désolé ta perdu :(" << endl;
+                break;
+        }
+        if(score>=objectif){
+            cout << "ta gagné gg !!!" << endl;
+                break;
+        }
+    }
+}
+
+
 void EcranAccueil(MinGL & window){
     window << nsShape::Triangle(nsGraphics::Vec2D(300, 420), nsGraphics::Vec2D(500, 420), nsGraphics::Vec2D(400, 220), nsGraphics::KYellow);
-    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/SmashBall.svg.png",nsGraphics::Vec2D(300,300));
+    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/SmashBall.svg.si2",nsGraphics::Vec2D(0,0));
 
 }
 
@@ -377,6 +402,6 @@ int main() {
         //frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
 
     }
-    Niveau_1();
+    Niveau_1V2();
 
 }
