@@ -46,7 +46,7 @@ void couleur (const unsigned & coul) {
     cout << "\033[" << coul <<"m";
 }
 
-void initMat(CMatrice & mat , const size_t & nbLignes = 10,const size_t & nbColonnes = 10 ,const unsigned & nbMax= KPlusGrandNombreDansLaMatrice ){
+void initMat(CMatrice & mat , const size_t & nbLignes,const size_t & nbColonnes,const unsigned & nbMax= KPlusGrandNombreDansLaMatrice ){
     mat.resize(nbColonnes);
     for(unsigned k=0;k<nbColonnes;k=k+1){
         CVLigne nouvelle_matrice(nbLignes,0);
@@ -80,6 +80,11 @@ void afficheMatriceV0( const CMatrice & Mat ){
             }
             if(Mat[k][i]==4){
                 couleur(KJaune);
+                cout << Mat[k][i];
+                couleur(KReset);
+            }
+            if(Mat[k][i]==5){
+                couleur(KBleu);
                 cout << Mat[k][i];
                 couleur(KReset);
             }
@@ -260,7 +265,7 @@ void faitUnMouvement (CMatrice & mat, const char & deplacment, const size_t & nu
 
 int ppalExo03 (){
     CMatrice mat;
-    initMat(mat);
+    initMat(mat,10,10);
     unsigned score=0;
     // affichage de la matrice sans les numéros de lignes / colonnes en haut / à gauche
     afficheMatriceV0(mat);
@@ -275,7 +280,7 @@ int ppalExo03 (){
 
 int ppalExo04 (){
     CMatrice mat;
-    initMat(mat);
+    initMat(mat,10,10);
     // affichage de la matrice sans les numéros de lignes / colonnes en haut / à gauche
     //detectionExplositionUneBombeHorizontale (mat);
     //afficheMatriceV2 (mat);
@@ -323,7 +328,7 @@ void FaireUnTour(CMatrice & mat,unsigned & score){
 
 void Niveau_1(){
     CMatrice mat;
-    initMat(mat);
+    initMat(mat,10,10);
     unsigned score=0;
     while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
     }
@@ -343,9 +348,55 @@ void Niveau_1(){
     }
 }
 
+void cree_niveau(){
+    cout << "Tu va pouvoir crée ton niveau en déterminant la taille du plateau de jeu, le nombre de bonbon et enfin le mode de jeu que tu souhaites ( entre ceux qui sont disponiles )"<< endl;
+    cout << "Commence pas choisir la taille du plateau ( 4*4 au plus petit et 10*10 ) au plus grand " << endl;
+    unsigned longueur,nb_bonbon;
+    string ModeDeJeu;
+    cin >> longueur;
+    cout << "Maintenant choisi le nombre de bonbon que tu veux dans le jeu ( entre 3 et 5 )";
+    cin >> nb_bonbon;
+    cout << "Choix mode de jeu : Score , Noisette , Bonbon";
+    cin >> ModeDeJeu;
+    while(ModeDeJeu!="Score" || ModeDeJeu!="Noisette" || ModeDeJeu!="Bonbon"){
+        cin >> ModeDeJeu;
+    }
+    if(ModeDeJeu=="Score"){
+        CMatrice mat;
+        initMat(mat,10,10);
+        unsigned Tour_max,scoreAAtteindre,score=0,nbTour=1;
+        cout << "Combien de tour max vous voulez ? ( entre 5 et 30 )" << endl;
+        cin >> Tour_max;
+        cout << "Quel est le score a atteindre pour le niveau ? " << endl;
+        cin >> scoreAAtteindre;
+        while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
+        }
+        while(true){
+            FaireUnTour(mat,score);
+            cout << "tu es au tour :" << nbTour << endl;
+            cout << "tu as "  << score << " points !" << endl;
+            nbTour=nbTour+1;
+            if(nbTour == Tour_max){
+                cout << "désolé ta perdu :(" << endl;
+                    break;
+            }
+            if(score>=scoreAAtteindre){
+                cout << "ta gagné gg !!!" << endl;
+                    break;
+            }
+        }
+    }
+    if(ModeDeJeu=="Noisette"){
+        //A_Faire
+    }
+    if(ModeDeJeu=="Bonbon"){
+        //A_Faire
+    }
+}
+
 void Niveau_1V2(){
     CMatrice mat;
-    initMat(mat);
+    initMat(mat,10,10);
     unsigned score=0;
     while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
     }
@@ -368,9 +419,10 @@ void Niveau_1V2(){
 }
 
 
+
 void EcranAccueil(MinGL & window){
     window << nsShape::Triangle(nsGraphics::Vec2D(300, 420), nsGraphics::Vec2D(500, 420), nsGraphics::Vec2D(400, 220), nsGraphics::KYellow);
-    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/SmashBall.svg.si2",nsGraphics::Vec2D(0,0));
+    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-jeu",nsGraphics::Vec2D(0,0));
 
 }
 
