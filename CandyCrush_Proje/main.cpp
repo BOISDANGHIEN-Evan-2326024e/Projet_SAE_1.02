@@ -1,6 +1,11 @@
+#define FPS_LIMIT 60
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include <thread>
+#include <affichage.h>
+
+
 
 using namespace std;
 
@@ -19,24 +24,11 @@ void clearScreen () {
     cout << "\033[H\033[2J";
 }
 
-const unsigned KReset   (0);
-const unsigned KNoir    (30);
-const unsigned KRouge   (31);
-const unsigned KVert    (32);
-const unsigned KJaune   (33);
-const unsigned KBleu    (34);
-const unsigned KMAgenta (35);
-const unsigned KCyan    (36);
-const unsigned KBGNoir    (40);
-const unsigned KBGRouge   (41);
-const unsigned KGBBleu    (44);
-const unsigned KBGCyan    (46);
-
 void couleur (const unsigned & coul) {
     cout << "\033[" << coul <<"m";
 }
 
-void initMat(CMatrice & mat , const size_t & nbLignes = 10,const size_t & nbColonnes = 10 ,const unsigned & nbMax= KPlusGrandNombreDansLaMatrice ){
+void initMat(CMatrice & mat , const size_t & nbLignes,const size_t & nbColonnes,const unsigned & nbMax= KPlusGrandNombreDansLaMatrice ){
     mat.resize(nbColonnes);
     for(unsigned k=0;k<nbColonnes;k=k+1){
         CVLigne nouvelle_matrice(nbLignes,0);
@@ -70,6 +62,11 @@ void afficheMatriceV0( const CMatrice & Mat ){
             }
             if(Mat[k][i]==4){
                 couleur(KJaune);
+                cout << Mat[k][i];
+                couleur(KReset);
+            }
+            if(Mat[k][i]==5){
+                couleur(KBleu);
                 cout << Mat[k][i];
                 couleur(KReset);
             }
@@ -149,7 +146,14 @@ bool detectionExplositionUneBombeHorizontale (CMatrice & mat,unsigned & score){
     //si on a aun moins 3 chiffres identiques a la suite
     return auMoinsUneExplosionHorizontal;
 }
-
+/**
+ * @brief explositionUneBombeVertical=fonction decalant les chiffres après explosion
+ * @param mat=
+ * @param numLigne= numéro de la ligne
+ * @param numColonne= numéro de la colonne
+ * @param combien =
+ * @param nbMax = chiffre a placé < =4
+ */
 void explositionUneBombeVertical (CMatrice & mat, const size_t & numLigne,const size_t & numColonne, const size_t & combien,const unsigned & nbMax=KPlusGrandNombreDansLaMatrice){
     for(unsigned k=numLigne-1;k>combien-1;k=k-1){
         mat[k][numColonne]=mat[k-3][numColonne];
@@ -163,7 +167,12 @@ void explositionUneBombeVertical (CMatrice & mat, const size_t & numLigne,const 
     }*/
 
 }
-
+/**
+ * @brief detectionExplositionUneBombeVertical= fonction verifiant si 3 chiffre identique sont alignées
+ * @param mat = initialisation de la matrice
+ * @param score = compte le score
+ * @return
+ */
 bool detectionExplositionUneBombeVertical (CMatrice & mat,unsigned & score){
     bool auMoinsUneExplosionVertical=false;
     for(unsigned k=0;k<mat.size()-2;k=k+1){
@@ -203,54 +212,11 @@ bool detectionExplositionUneBombeVertical (CMatrice & mat,unsigned & score){
 //fait descendre toutes les cases d'une unité suite à une explosition
 
 
-void faitUnMouvement (CMatrice & mat, const char & deplacment, const size_t & numLigne,
-                     const size_t & numCol) {
-
-    size_t nouvellePositionLigne (numLigne), nouvellePositionColonne (numCol);
-    switch (tolower(deplacment)) {
-    case 'a':
-        nouvellePositionColonne = numCol-1;
-        nouvellePositionLigne = numLigne-1;
-        break;
-    case 'z':
-        nouvellePositionColonne = numCol;
-        nouvellePositionLigne = numLigne-1;
-        break;
-    case 'e':
-        nouvellePositionColonne = numCol+1;
-        nouvellePositionLigne = numLigne-1;
-        break;
-    case 'q':
-        nouvellePositionColonne = numCol-1;
-        nouvellePositionLigne = numLigne;
-        break;
-    case 'd':
-        nouvellePositionColonne = numCol+1;
-        nouvellePositionLigne = numLigne;
-        break;
-    case 'w':
-        nouvellePositionColonne = numCol-1;
-        nouvellePositionLigne = numLigne+1;
-        break;
-    case 'x':
-        nouvellePositionColonne = numCol;
-        nouvellePositionLigne = numLigne+1;
-        break;
-    case 'c':
-        nouvellePositionColonne = numCol+1;
-        nouvellePositionLigne = numLigne+1;
-        break;
-    default:
-        cout<<"Tu choisis A ou Z ou E  ou Q ou D ou W ou X ou C"<<endl;
-        break;
-    }
-    swap(mat[numLigne][numCol],mat[nouvellePositionLigne][nouvellePositionColonne]);
-}
 
 
 int ppalExo03 (){
     CMatrice mat;
-    initMat(mat);
+    initMat(mat,10,10);
     unsigned score=0;
     // affichage de la matrice sans les numéros de lignes / colonnes en haut / à gauche
     afficheMatriceV0(mat);
@@ -265,7 +231,7 @@ int ppalExo03 (){
 
 int ppalExo04 (){
     CMatrice mat;
-    initMat(mat);
+    initMat(mat,10,10);
     // affichage de la matrice sans les numéros de lignes / colonnes en haut / à gauche
     //detectionExplositionUneBombeHorizontale (mat);
     //afficheMatriceV2 (mat);
@@ -313,7 +279,7 @@ void FaireUnTour(CMatrice & mat,unsigned & score){
 
 void Niveau_1(){
     CMatrice mat;
-    initMat(mat);
+    initMat(mat,10,10);
     unsigned score=0;
     while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
     }
@@ -333,6 +299,80 @@ void Niveau_1(){
     }
 }
 
+void cree_niveau(){
+    cout << "Tu va pouvoir crée ton niveau en déterminant la taille du plateau de jeu, le nombre de bonbon et enfin le mode de jeu que tu souhaites ( entre ceux qui sont disponiles )"<< endl;
+    cout << "Commence pas choisir la taille du plateau ( 4*4 au plus petit et 10*10 ) au plus grand " << endl;
+    unsigned longueur,nb_bonbon;
+    string ModeDeJeu;
+    cin >> longueur;
+    cout << "Maintenant choisi le nombre de bonbon que tu veux dans le jeu ( entre 3 et 5 )";
+    cin >> nb_bonbon;
+    cout << "Choix mode de jeu : Score , Noisette , Bonbon";
+    cin >> ModeDeJeu;
+    while(ModeDeJeu!="Score" || ModeDeJeu!="Noisette" || ModeDeJeu!="Bonbon"){
+        cin >> ModeDeJeu;
+    }
+    if(ModeDeJeu=="Score"){
+        CMatrice mat;
+        initMat(mat,10,10);
+        unsigned Tour_max,scoreAAtteindre,score=0,nbTour=1;
+        cout << "Combien de tour max vous voulez ? ( entre 5 et 30 )" << endl;
+        cin >> Tour_max;
+        cout << "Quel est le score a atteindre pour le niveau ? " << endl;
+        cin >> scoreAAtteindre;
+        while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
+        }
+        while(true){
+            FaireUnTour(mat,score);
+            cout << "tu es au tour :" << nbTour << endl;
+            cout << "tu as "  << score << " points !" << endl;
+            nbTour=nbTour+1;
+            if(nbTour == Tour_max){
+                cout << "désolé ta perdu :(" << endl;
+                    break;
+            }
+            if(score>=scoreAAtteindre){
+                cout << "ta gagné gg !!!" << endl;
+                    break;
+            }
+        }
+    }
+    if(ModeDeJeu=="Noisette"){
+        //A_Faire
+    }
+    if(ModeDeJeu=="Bonbon"){
+        //A_Faire
+    }
+}
+
+void Niveau_1V2(){
+    CMatrice mat;
+    initMat(mat,10,10);
+    unsigned score=0;
+    while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
+    }
+    unsigned objectif=1500,nbTour=0,nbTourMax=10;
+    score=0;
+    while(true){
+        FaireUnTour(mat,score);
+        cout << "tu es au tour :" << nbTour << endl;
+        cout << "tu as "  << score << " points !" << endl;
+        nbTour=nbTour+1;
+        if(nbTour == nbTourMax){
+            cout << "désolé ta perdu :(" << endl;
+                break;
+        }
+        if(score>=objectif){
+            cout << "ta gagné gg !!!" << endl;
+                break;
+        }
+    }
+}
+
+
+
+
 int main() {
-    Niveau_1();
+    Niveau_1V2();
+
 }
