@@ -86,22 +86,24 @@ void initParams (CMyParam & Param)
 
 void chargerConfig(CMyParam & param, const string & fichier){
     ifstream ifs (fichier);
-    if (!ifs) exit(3);
+    if (!ifs) cerr <<"pas de fichier du nom de : "<<fichier;
     string cle;
-    while (cin >> cle){
+    while (ifs >> cle){
         char deuxPts;
-        unsigned val;
         ifs >> deuxPts;
-        ifs >> val;
         if (param.mapParamUnsigned.find(cle) != param.mapParamUnsigned.end()){
+            unsigned val;
             ifs >> val;
             param.mapParamUnsigned[cle] = val;
         }
         else if (param.mapParamChar.find(cle) != param.mapParamChar.end()){
-            ifs >> param.mapParamChar[cle];
+            char val;
+            ifs >> val;
+            param.mapParamChar[cle] = val;
         }
         else {
             string tmp;
+            getline(ifs, tmp);
 
         }
     }
@@ -304,45 +306,42 @@ bool detectionExplositionUneBombeVertical (CMatrice & mat,unsigned & score){
 void faitUnMouvement (CMatrice & mat, const char & deplacment, const size_t & numLigne,
                      const size_t & numCol, const CMyParam & param) {
     size_t nouvellePositionLigne (numLigne), nouvellePositionColonne (numCol);
+    cout<<"Tu choisis A ou Z ou E  ou Q ou D ou W ou X ou C"<<endl;
     auto it (param.mapParamChar.begin());
-    for ( ; it != param.mapParamChar.end() && it ->second != tolower(deplacment); ++it);
-    switch (tolower(deplacment)) {
-    case 'a':
-        nouvellePositionColonne = numCol-1;
-        nouvellePositionLigne = numLigne-1;
-        break;
-    case 'z':
-        nouvellePositionColonne = numCol;
-        nouvellePositionLigne = numLigne-1;
-        break;
-    case 'e':
-        nouvellePositionColonne = numCol+1;
-        nouvellePositionLigne = numLigne-1;
-        break;
-    case 'q':
-        nouvellePositionColonne = numCol-1;
-        nouvellePositionLigne = numLigne;
-        break;
-    case 'd':
-        nouvellePositionColonne = numCol+1;
-        nouvellePositionLigne = numLigne;
-        break;
-    case 'w':
-        nouvellePositionColonne = numCol-1;
-        nouvellePositionLigne = numLigne+1;
-        break;
-    case 'x':
-        nouvellePositionColonne = numCol;
-        nouvellePositionLigne = numLigne+1;
-        break;
-    case 'c':
-        nouvellePositionColonne = numCol+1;
-        nouvellePositionLigne = numLigne+1;
-        break;
-    default:
-        cout<<"Tu choisis A ou Z ou E  ou Q ou D ou W ou X ou C"<<endl;
-        break;
+    for ( ; it != param.mapParamChar.end() && it ->second != tolower(deplacment); ++it){
     }
+            if(it->first == "toucheHautGauche"){
+                nouvellePositionColonne = numCol-1;
+                nouvellePositionLigne = numLigne-1;
+            }
+            if(it->first == "toucheHaut"){
+                nouvellePositionColonne = numCol;
+                nouvellePositionLigne = numLigne-1;
+            }
+            if(it->first == "toucheHautDroite"){
+                nouvellePositionColonne = numCol+1;
+                nouvellePositionLigne = numLigne-1;
+            }
+            if(it->first == "toucheGauche"){
+                nouvellePositionColonne = numCol-1;
+                nouvellePositionLigne = numLigne;
+            }
+            if(it->first == "toucheDroite"){
+                nouvellePositionColonne = numCol+1;
+                nouvellePositionLigne = numLigne;
+            }
+            if(it->first == "toucheBasGauche"){
+                nouvellePositionColonne = numCol-1;
+                nouvellePositionLigne = numLigne+1;
+            }
+            if(it->first == "toucheBas"){
+                nouvellePositionColonne = numCol;
+                nouvellePositionLigne = numLigne+1;
+            }
+            if(it->first == "toucheBasDroite"){
+                nouvellePositionColonne = numCol+1;
+                nouvellePositionLigne = numLigne+1;
+            }
     swap(mat[numLigne][numCol],mat[nouvellePositionLigne][nouvellePositionColonne]);
 }
 
@@ -381,15 +380,20 @@ int ppalExo04 (){
         cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
         char deplacement;
         cin >> deplacement;
-        faitUnMouvement (mat, deplacement, numLigne, numCol);
+        //faitUnMouvement (mat, deplacement, numLigne, numCol);
         //detectionExplositionUneBombeHorizontale (mat);
         afficheMatriceV0 (mat);
     }
     return 0;
 }
 
-void FaireUnTour(CMatrice & mat,unsigned & score){
+void FaireUnTour(CMatrice & mat,unsigned & score,CMyParam Param){
+    cout << Param.mapParamChar["toucheBasDroite"] << endl;
     afficheMatriceV0 (mat);
+    CMyParam Param;
+    string fichier="config.yaml";
+    initParams(Param);
+    chargerConfig(Param,fichier);
     cout << "Fait un mouvement ";
     cout << "numero de ligne : "<<endl;
     size_t numLigne;
@@ -400,7 +404,7 @@ void FaireUnTour(CMatrice & mat,unsigned & score){
     cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
     char deplacement;
     cin >> deplacement;
-    faitUnMouvement (mat, deplacement, numLigne, numCol);
+    faitUnMouvement (mat, deplacement, numLigne, numCol,Param);
     //detectionExplositionUneBombeHorizontale (mat);
     //afficheMatriceV0 (mat);
     while(true){
@@ -492,7 +496,7 @@ void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window){
     cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
     char deplacement;
     cin >> deplacement;
-    faitUnMouvement (mat, deplacement, numLigne, numCol);
+    //faitUnMouvement (mat, deplacement, numLigne, numCol);
     //detectionExplositionUneBombeHorizontale (mat);
     //afficheMatriceV0 (mat);
     while(true){
@@ -571,12 +575,12 @@ void Niveau_1V2_mingl(MinGL & window,CMatrice & mat){
 
 
 int main() {
-    MinGL Candy_Crush("Candy_Crush", nsGraphics::Vec2D(1920,1080), nsGraphics::Vec2D(1920, 1080), nsGraphics::KBlack);
-    Candy_Crush.initGlut();
-    Candy_Crush.initGraphic();
-    CMatrice mat;
-    initMat(mat,5,5);
-    EcranAccueil(Candy_Crush,mat);
+    //MinGL Candy_Crush("Candy_Crush", nsGraphics::Vec2D(1920,1080), nsGraphics::Vec2D(1920, 1080), nsGraphics::KBlack);
+    //Candy_Crush.initGlut();
+    //Candy_Crush.initGraphic();
+    //CMatrice mat;
+    //initMat(mat,5,5);
+    //EcranAccueil(Candy_Crush,mat);
     /*while (Candy_Crush.isOpen())
     {
         // Récupère l'heure actuelle

@@ -1,0 +1,10 @@
+nbColonne : 10
+nbLignes : 10
+MouvementHautGauche : r
+MouvementHaut : t
+MouvementHautDroite : y
+MouvementGauche : f
+MouvementDroite : h
+MouvementBasGauche : v
+MouvementBas : b
+MouvementBasDroite : n
