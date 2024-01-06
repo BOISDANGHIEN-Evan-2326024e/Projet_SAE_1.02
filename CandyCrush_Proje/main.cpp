@@ -1,17 +1,6 @@
-#define FPS_LIMIT 60
 #include <iostream>
 #include <vector>
 #include <iomanip>
-#include <thread>
-#include "mingl/mingl.h"
-#include "mingl/shape/rectangle.h"
-#include "mingl/shape/circle.h"
-#include "mingl/shape/line.h"
-#include "mingl/shape/triangle.h"
-#include "mingl/gui/sprite.h"
-#include <fstream>
-
-
 
 using namespace std;
 
@@ -47,7 +36,7 @@ void couleur (const unsigned & coul) {
     cout << "\033[" << coul <<"m";
 }
 
-void initMat(CMatrice & mat , const size_t & nbLignes,const size_t & nbColonnes,const unsigned & nbMax= KPlusGrandNombreDansLaMatrice ){
+void initMat(CMatrice & mat , const size_t & nbLignes = 10, const size_t & nbColonnes = 10,const unsigned & nbMax= KPlusGrandNombreDansLaMatrice ){
     mat.resize(nbColonnes);
     for(unsigned k=0;k<nbColonnes;k=k+1){
         CVLigne nouvelle_matrice(nbLignes,0);
@@ -59,57 +48,7 @@ void initMat(CMatrice & mat , const size_t & nbLignes,const size_t & nbColonnes,
     }
 }
 
-using namespace std;
-
-struct CMyParam {
-    std::map <std::string, char> mapParamChar;
-    std::map <std::string, unsigned> mapParamUnsigned;
-};
-
-void initParams (CMyParam & Param)
-{
-    //touche du joueur
-    Param.mapParamChar["toucheHaut"] = 'z';
-    Param.mapParamChar["toucheGauche"] = 'q';
-    Param.mapParamChar["toucheDroite"] = 'd';
-    Param.mapParamChar["toucheBas"] = 'x';
-    Param.mapParamChar["toucheHautDroite"] = 'e';
-    Param.mapParamChar["toucheHautGauche"] = 'a';
-    Param.mapParamChar["toucheBasGauche"] = 'w';
-    Param.mapParamChar["toucheBasDroite"] = 'c';
-
-    //taille de la grille - on suppose que c'est un rectangle
-    Param.mapParamUnsigned["nbColonnes"] = 10;
-    Param.mapParamUnsigned["nbLignes"] = 10;
-
-}
-
-void chargerConfig(CMyParam & param, const string & fichier){
-    ifstream ifs (fichier);
-    if (!ifs) cerr <<"pas de fichier du nom de : "<<fichier;
-    string cle;
-    while (ifs >> cle){
-        char deuxPts;
-        ifs >> deuxPts;
-        if (param.mapParamUnsigned.find(cle) != param.mapParamUnsigned.end()){
-            unsigned val;
-            ifs >> val;
-            param.mapParamUnsigned[cle] = val;
-        }
-        else if (param.mapParamChar.find(cle) != param.mapParamChar.end()){
-            char val;
-            ifs >> val;
-            param.mapParamChar[cle] = val;
-        }
-        else {
-            string tmp;
-            getline(ifs, tmp);
-
-        }
-    }
-}
-
-void afficheMatriceV0( const CMatrice & Mat  ){
+void afficheMatriceV0( const CMatrice & Mat ){
     int m =0;
     for(unsigned k=0;k<Mat.size();k=k+1){
         cout << "|" << " " << m << "| " ;
@@ -134,11 +73,6 @@ void afficheMatriceV0( const CMatrice & Mat  ){
                 cout << Mat[k][i];
                 couleur(KReset);
             }
-            if(Mat[k][i]==5){
-                couleur(KBleu);
-                cout << Mat[k][i];
-                couleur(KReset);
-            }
             if(Mat[k][i]==0){
                 couleur(KBGRouge);
                 cout << " ";
@@ -151,40 +85,6 @@ void afficheMatriceV0( const CMatrice & Mat  ){
     }
 }
 
-void afficheMatrice_Interface_G(const CMatrice & Mat,MinGL & window){
-    window.clearScreen();
-    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
-    unsigned coord_colonne=200;
-    for(unsigned k=0;k<Mat.size();k=k+1){
-        unsigned coord_ligne=250;
-        for(unsigned i=0;i<Mat[0].size();i=i+1){
-            if(Mat[k][i]==1){
-                window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-1-reussi",nsGraphics::Vec2D(coord_ligne,coord_colonne));
-            }
-            if(Mat[k][i]==2){
-                window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-2-reussi",nsGraphics::Vec2D(coord_ligne,coord_colonne));
-            }
-            if(Mat[k][i]==3){
-                window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-3-reussi",nsGraphics::Vec2D(coord_ligne,coord_colonne));
-            }
-            if(Mat[k][i]==4){
-                window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-4-reussi",nsGraphics::Vec2D(coord_ligne,coord_colonne));
-            }
-            if(Mat[k][i]==5){
-                couleur(KBleu);
-                cout << Mat[k][i];
-                couleur(KReset);
-            }
-            if(Mat[k][i]==0){
-                couleur(KBGRouge);
-                cout << " ";
-                couleur(KReset);
-            }
-            coord_ligne=coord_ligne+80;
-        }
-        coord_colonne=coord_colonne+80;
-    }
-}
 
 //***********************************************************************************/
 //***********************    R1.01 – Prog#10 Exercice 2   ***************************/
@@ -304,51 +204,53 @@ bool detectionExplositionUneBombeVertical (CMatrice & mat,unsigned & score){
 
 
 void faitUnMouvement (CMatrice & mat, const char & deplacment, const size_t & numLigne,
-                     const size_t & numCol, const CMyParam & param) {
+                     const size_t & numCol) {
+
     size_t nouvellePositionLigne (numLigne), nouvellePositionColonne (numCol);
-    cout<<"Tu choisis A ou Z ou E  ou Q ou D ou W ou X ou C"<<endl;
-    auto it (param.mapParamChar.begin());
-    for ( ; it != param.mapParamChar.end() && it ->second != tolower(deplacment); ++it){
+    switch (tolower(deplacment)) {
+    case 'a':
+        nouvellePositionColonne = numCol-1;
+        nouvellePositionLigne = numLigne-1;
+        break;
+    case 'z':
+        nouvellePositionColonne = numCol;
+        nouvellePositionLigne = numLigne-1;
+        break;
+    case 'e':
+        nouvellePositionColonne = numCol+1;
+        nouvellePositionLigne = numLigne-1;
+        break;
+    case 'q':
+        nouvellePositionColonne = numCol-1;
+        nouvellePositionLigne = numLigne;
+        break;
+    case 'd':
+        nouvellePositionColonne = numCol+1;
+        nouvellePositionLigne = numLigne;
+        break;
+    case 'w':
+        nouvellePositionColonne = numCol-1;
+        nouvellePositionLigne = numLigne+1;
+        break;
+    case 'x':
+        nouvellePositionColonne = numCol;
+        nouvellePositionLigne = numLigne+1;
+        break;
+    case 'c':
+        nouvellePositionColonne = numCol+1;
+        nouvellePositionLigne = numLigne+1;
+        break;
+    default:
+        cout<<"Tu choisis A ou Z ou E  ou Q ou D ou W ou X ou C"<<endl;
+        break;
     }
-            if(it->first == "toucheHautGauche"){
-                nouvellePositionColonne = numCol-1;
-                nouvellePositionLigne = numLigne-1;
-            }
-            if(it->first == "toucheHaut"){
-                nouvellePositionColonne = numCol;
-                nouvellePositionLigne = numLigne-1;
-            }
-            if(it->first == "toucheHautDroite"){
-                nouvellePositionColonne = numCol+1;
-                nouvellePositionLigne = numLigne-1;
-            }
-            if(it->first == "toucheGauche"){
-                nouvellePositionColonne = numCol-1;
-                nouvellePositionLigne = numLigne;
-            }
-            if(it->first == "toucheDroite"){
-                nouvellePositionColonne = numCol+1;
-                nouvellePositionLigne = numLigne;
-            }
-            if(it->first == "toucheBasGauche"){
-                nouvellePositionColonne = numCol-1;
-                nouvellePositionLigne = numLigne+1;
-            }
-            if(it->first == "toucheBas"){
-                nouvellePositionColonne = numCol;
-                nouvellePositionLigne = numLigne+1;
-            }
-            if(it->first == "toucheBasDroite"){
-                nouvellePositionColonne = numCol+1;
-                nouvellePositionLigne = numLigne+1;
-            }
     swap(mat[numLigne][numCol],mat[nouvellePositionLigne][nouvellePositionColonne]);
 }
 
 
 int ppalExo03 (){
     CMatrice mat;
-    initMat(mat,10,10);
+    initMat(mat);
     unsigned score=0;
     // affichage de la matrice sans les numéros de lignes / colonnes en haut / à gauche
     afficheMatriceV0(mat);
@@ -363,7 +265,7 @@ int ppalExo03 (){
 
 int ppalExo04 (){
     CMatrice mat;
-    initMat(mat,10,10);
+    initMat(mat);
     // affichage de la matrice sans les numéros de lignes / colonnes en haut / à gauche
     //detectionExplositionUneBombeHorizontale (mat);
     //afficheMatriceV2 (mat);
@@ -380,20 +282,15 @@ int ppalExo04 (){
         cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
         char deplacement;
         cin >> deplacement;
-        //faitUnMouvement (mat, deplacement, numLigne, numCol);
+        faitUnMouvement (mat, deplacement, numLigne, numCol);
         //detectionExplositionUneBombeHorizontale (mat);
         afficheMatriceV0 (mat);
     }
     return 0;
 }
 
-void FaireUnTour(CMatrice & mat,unsigned & score,CMyParam Param){
-    cout << Param.mapParamChar["toucheBasDroite"] << endl;
-    afficheMatriceV0 (mat);
-    CMyParam Param;
-    string fichier="config.yaml";
-    initParams(Param);
-    chargerConfig(Param,fichier);
+void FaireUnTour(CMatrice & mat,unsigned & score){
+    afficheMatriceV0(mat);
     cout << "Fait un mouvement ";
     cout << "numero de ligne : "<<endl;
     size_t numLigne;
@@ -404,7 +301,7 @@ void FaireUnTour(CMatrice & mat,unsigned & score,CMyParam Param){
     cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
     char deplacement;
     cin >> deplacement;
-    faitUnMouvement (mat, deplacement, numLigne, numCol,Param);
+    faitUnMouvement (mat, deplacement, numLigne, numCol);
     //detectionExplositionUneBombeHorizontale (mat);
     //afficheMatriceV0 (mat);
     while(true){
@@ -416,11 +313,11 @@ void FaireUnTour(CMatrice & mat,unsigned & score,CMyParam Param){
 
 void Niveau_1(){
     CMatrice mat;
-    initMat(mat,10,10);
+    initMat(mat);
     unsigned score=0;
     while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
     }
-    unsigned objectif=1500,nbTour=0,nbTourMax=30;
+    unsigned objectif=1500,nbTour=0,nbTourMax=10;
     score=0;
     while(nbTour != nbTourMax || score<objectif){
         FaireUnTour(mat,score);
@@ -428,7 +325,7 @@ void Niveau_1(){
         cout << "tu as "  << score << " points !" << endl;
         nbTour=nbTour+1;
     }
-    if(nbTour == 30){
+    if(nbTour == nbTourMax){
         cout << "désolé ta perdu :(" << endl;
     }
     else{
@@ -436,56 +333,190 @@ void Niveau_1(){
     }
 }
 
-void cree_niveau(){
-    cout << "Tu va pouvoir crée ton niveau en déterminant la taille du plateau de jeu, le nombre de bonbon et enfin le mode de jeu que tu souhaites ( entre ceux qui sont disponiles )"<< endl;
-    cout << "Commence pas choisir la taille du plateau ( 4*4 au plus petit et 10*10 ) au plus grand " << endl;
-    unsigned longueur,nb_bonbon;
-    string ModeDeJeu;
-    cin >> longueur;
-    cout << "Maintenant choisi le nombre de bonbon que tu veux dans le jeu ( entre 3 et 5 )";
-    cin >> nb_bonbon;
-    cout << "Choix mode de jeu : Score , Noisette , Bonbon";
-    cin >> ModeDeJeu;
-    while(ModeDeJeu!="Score" || ModeDeJeu!="Noisette" || ModeDeJeu!="Bonbon"){
-        cin >> ModeDeJeu;
+void Niveau_1V2(){
+    CMatrice mat;
+    initMat(mat);
+    unsigned score=0;
+    while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
     }
-    if(ModeDeJeu=="Score"){
-        CMatrice mat;
-        initMat(mat,10,10);
-        unsigned Tour_max,scoreAAtteindre,score=0,nbTour=1;
-        cout << "Combien de tour max vous voulez ? ( entre 5 et 30 )" << endl;
-        cin >> Tour_max;
-        cout << "Quel est le score a atteindre pour le niveau ? " << endl;
-        cin >> scoreAAtteindre;
-        while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
+    unsigned objectif=1500,nbTour=0,nbTourMax=10;
+    score=0;
+    while(true){
+        FaireUnTour(mat,score);
+        cout << "tu es au tour :" << nbTour << endl;
+        cout << "tu as "  << score << " points !" << endl;
+        nbTour=nbTour+1;
+        if(nbTour == nbTourMax){
+            cout << "désolé ta perdu :(" << endl;
+            break;
         }
-        while(true){
-            FaireUnTour(mat,score);
-            cout << "tu es au tour :" << nbTour << endl;
-            cout << "tu as "  << score << " points !" << endl;
-            nbTour=nbTour+1;
-            if(nbTour == Tour_max){
-                cout << "désolé ta perdu :(" << endl;
-                    break;
-            }
-            if(score>=scoreAAtteindre){
-                cout << "ta gagné gg !!!" << endl;
-                    break;
-            }
+        if(score>=objectif){
+            cout << "ta gagné gg !!!" << endl;
+            break;
         }
-    }
-    if(ModeDeJeu=="Noisette"){
-        //A_Faire
-    }
-    if(ModeDeJeu=="Bonbon") {
-        //A_Faire
     }
 }
 
-void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window){
-    afficheMatrice_Interface_G(mat,window);
-    window.finishFrame();
-    this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT));
+void Niveau_2(){
+    CMatrice mat;
+    initMat(mat);
+    unsigned score=0;
+    while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
+    }
+    unsigned objectif=1500,nbTour=0,nbTourMax=10;
+    score=0;
+    while(true){
+        FaireUnTour(mat,score);
+        cout << "tu es au tour :" << nbTour << endl;
+        cout << "tu as "  << score << " points !" << endl;
+        nbTour=nbTour+1;
+        if(nbTour == nbTourMax){
+            cout << "désolé ta perdu :(" << endl;
+            break;
+        }
+        if(score>=objectif){
+            cout << "ta gagné gg !!!" << endl;
+            break;
+        }
+    }
+}
+
+
+//Création d'un niveau qui se gagne qu'en explosant un certain nombre de Gemme d'une couleur choisit aléatoirement
+
+
+//On recrée le processus de déplacement et d'explosion pour y ajouter la fonctionnalité de retourner le nombre qui est explosé
+
+void explositionUneBombeHorizontaleGemme (CMatrice & mat, const size_t & numLigne,const size_t & numColonne, const size_t & combien,
+                                         const unsigned & nbMax=KPlusGrandNombreDansLaMatrice){
+    for(unsigned k=numLigne;k>0;k=k-1){
+        for(unsigned i=numColonne;i<combien+numColonne;i=i+1){
+            mat[k][i]=mat[k-1][i];
+        }
+    }
+    /* for(unsigned i=numColonne;i<combien+numColonne;i=i+1){
+        mat[0][i]=KAIgnorer;
+    }*/
+    // deuxieme version ou il y a des fruits qui reviennent
+    for(unsigned i=numColonne;i<combien+numColonne;i=i+1){
+        mat[0][i]=1+rand()%(nbMax - 1 + 1);
+    }
+}
+
+
+bool detectionExplositionUneBombeHorizontaleGemme (CMatrice & mat, unsigned & gemmeRestante, const unsigned & gemmeADetruire){
+    bool auMoinsUneExplosionHorizontal=false;
+    for(unsigned k=0;k<mat.size();k=k+1){
+        size_t combienALaSuite=1;
+        unsigned gemmeEnCours=0;
+
+        for(unsigned i=0;i<mat[k].size();i=i+1){
+            if(mat[k][i]==KAIgnorer){
+                gemmeEnCours=0;
+                continue;
+            }
+            else if(mat[k][i]==gemmeEnCours){
+                combienALaSuite=combienALaSuite+1;
+            }
+            if (combienALaSuite >= 3){
+                cout << endl << endl << "NSM" << endl << endl;
+                unsigned numCol=i+1-combienALaSuite;
+                unsigned numLigne=k+1;
+                auMoinsUneExplosionHorizontal = true;
+                cout << "on a une suite en position numLigne = " << numLigne<< "; colonne = " << numCol<< "; sur  " << combienALaSuite << " cases" << endl;
+                cout << string (20, '-') << endl << "matrice avant suppresion et " << auMoinsUneExplosionHorizontal << endl;
+
+                afficheMatriceV0(mat);
+                cout << mat[k][i] << " est le chiffre de notre suppression et " << gemmeEnCours << " aussi" << endl;
+                if(gemmeADetruire == gemmeEnCours){
+                    gemmeRestante = gemmeRestante-3;
+                }
+                else{
+                    cout << "non";
+                }
+                explositionUneBombeHorizontale (mat, k, numCol, combienALaSuite);
+                cout << string (20, '-') << endl << "matrice après suppresion" << endl;
+                afficheMatriceV0(mat);
+
+                cout << "il reste "<< gemmeRestante << " gemme(s)" << endl;
+
+                gemmeEnCours=mat[k][i];
+                combienALaSuite=1;
+
+            }
+            if(mat[k][i]!=gemmeEnCours){
+                gemmeEnCours=mat[k][i];
+                combienALaSuite=1;
+            }
+        }
+    }
+    //on parcours la matrice case / case
+    // si on tombe sur la valeur KAIgnorer, on passe a la case suivante
+    // sinon on compte combien de fois on a la même valeur
+    //si on a aun moins 3 chiffres identiques a la suite
+    return auMoinsUneExplosionHorizontal;
+}
+
+void explositionUneBombeVerticalGemme (CMatrice & mat, const size_t & numLigne,const size_t & numColonne, const size_t & combien,
+                                      const unsigned & nbMax=KPlusGrandNombreDansLaMatrice){
+    for(unsigned k=numLigne-1;k>combien-1;k=k-1){
+        mat[k][numColonne]=mat[k-3][numColonne];
+    }
+    for(unsigned i=0;i<combien;i=i+1){
+        mat[i][numColonne]=1+rand()%(nbMax - 1 + 1);
+    }
+    // deuxieme version ou il y a des fruits qui reviennent
+    /*    for(unsigned i=numColonne;i<combien+numColonne;i=i+1){
+        mat[0][i]=1+rand()%(nbMax - 1 + 1);
+    }*/
+
+}
+
+bool detectionExplositionUneBombeVerticalGemme (CMatrice & mat,unsigned & gemmeRestante, const unsigned gemmeADetruire){
+    bool auMoinsUneExplosionVertical=false;
+    for(unsigned k=0;k<mat.size()-2;k=k+1){
+        for(unsigned i=0;i<mat[0].size();i=i+1){
+            size_t combienALaSuite=1;
+            unsigned gemmeEnCours=mat[k][i];
+            while(mat[k+combienALaSuite][i]==gemmeEnCours && k+combienALaSuite<mat.size()-1){
+                combienALaSuite=combienALaSuite+1;
+                if(mat[k][i]==KAIgnorer){
+                    gemmeEnCours=0;
+                    break;
+                }
+                if(combienALaSuite >= 3){
+                    size_t numCol=i;
+                    size_t numLigne=k+combienALaSuite;
+                    auMoinsUneExplosionVertical=true;
+                    cout << " on a une suite en position numLigne = " << numLigne<< "; colonne = " << numCol<< "; sur  " << combienALaSuite << " cases" << endl;
+                    cout << string (20, '-') << endl << "matrice avant suppresion" << endl;
+                    afficheMatriceV0(mat);
+                    cout << mat[k][i] << " est le chiffre de notre suppression" << endl;
+                    if(gemmeADetruire == gemmeEnCours){
+                        gemmeRestante = gemmeRestante-3;
+                    }
+                    else{
+                        cout << "nonV";
+                    }
+
+                    explositionUneBombeVertical(mat, numLigne, numCol, combienALaSuite);
+                    cout << string (20, '-') << endl << "matrice après suppresion" << endl;
+                    afficheMatriceV0(mat);
+                    if(gemmeADetruire == mat[k][i]){
+                        gemmeRestante = gemmeRestante - 3;
+                    }
+
+
+                    break;
+                }
+            }
+        }
+    }
+    return auMoinsUneExplosionVertical;
+}
+
+void FaireUnTourGemme(CMatrice & mat,unsigned & gemmeRestante, const unsigned & gemmeADetruire){
+    afficheMatriceV0(mat);
     cout << "Fait un mouvement ";
     cout << "numero de ligne : "<<endl;
     size_t numLigne;
@@ -496,119 +527,51 @@ void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window){
     cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
     char deplacement;
     cin >> deplacement;
-    //faitUnMouvement (mat, deplacement, numLigne, numCol);
+    faitUnMouvement (mat, deplacement, numLigne, numCol);
     //detectionExplositionUneBombeHorizontale (mat);
     //afficheMatriceV0 (mat);
-    while(true){
-        afficheMatrice_Interface_G(mat,window);
-        window.finishFrame();
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT));
-        if(detectionExplositionUneBombeVertical(mat,score)==false && detectionExplositionUneBombeHorizontale(mat,score)==false) {
-            break;
-        }
-
+    while(detectionExplositionUneBombeVerticalGemme(mat,gemmeRestante, gemmeADetruire) == true || detectionExplositionUneBombeHorizontaleGemme(mat, gemmeRestante, gemmeADetruire) == true){
     }
 }
 
-void Niveau_1V2(){
+//(rand() % (max-min+1)) + min
+
+
+
+//Fonction du niveau en particulier
+void Niveau_3(){
     CMatrice mat;
-    initMat(mat,10,10);
-    unsigned score=0;
-    while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
-    }
-    unsigned objectif=1500,nbTour=0,nbTourMax=10;
-    score=0;
+    initMat(mat);
+    unsigned gemmeRestante = 0, gemmeADetruire = (rand() % (4-1+1))+1;
+    while (detectionExplositionUneBombeVerticalGemme(mat, gemmeRestante, gemmeADetruire)==true
+    || detectionExplositionUneBombeHorizontaleGemme(mat, gemmeRestante, gemmeADetruire)==true){}
+    cout << endl <<  "Initialisation complete." << endl << gemmeRestante << " gemmes restantes avant commencer." << endl;
+    gemmeRestante = 50;
+
+    cout << gemmeRestante << " pour le début de la partie. C'est partie !!!" << endl << endl;
+
+    cout << "Bienvenue dans le mode de jeu Gemme" << endl << endl << "La gemme a détruire est : " << gemmeADetruire << endl;
+    unsigned nbTour=0,nbTourMax=20;
     while(true){
-        FaireUnTour(mat,score);
+        nbTour = nbTour + 1;
+        FaireUnTourGemme(mat, gemmeRestante, gemmeADetruire);
         cout << "tu es au tour :" << nbTour << endl;
-        cout << "tu as "  << score << " points !" << endl;
+        cout << "il ne te reste plus que "  << gemmeRestante << " gemme numéro " << gemmeADetruire << " à détruire !" << endl;
         nbTour=nbTour+1;
-        if(nbTour == nbTourMax){
+        if(gemmeRestante <= 0){
+            cout << "tu as gagné gg !!!" << endl;
+                break;
+        }
+        else if(nbTour == nbTourMax){
             cout << "désolé ta perdu :(" << endl;
                 break;
         }
-        if(score>=objectif){
-            cout << "ta gagné gg !!!" << endl;
-                break;
-        }
-    }
-}
 
-void EcranAccueil(MinGL & window,CMatrice mat){
-    //window << nsShape::Triangle(nsGraphics::Vec2D(300, 420), nsGraphics::Vec2D(500, 420), nsGraphics::Vec2D(400, 220), nsGraphics::KYellow);
-    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
-    //window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-1-reussi",nsGraphics::Vec2D(700,700));
-    //window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-2-reussi",nsGraphics::Vec2D(200,200));
-    afficheMatrice_Interface_G(mat,window);
-    mat[0][0]=mat[0][2];
-    this_thread::sleep_for(chrono::milliseconds(10000 / FPS_LIMIT));
-    window.finishFrame();
-    afficheMatrice_Interface_G(mat,window);
-}
-
-void Niveau_1V2_mingl(MinGL & window,CMatrice & mat){
-    unsigned score=0;
-    while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
     }
-    EcranAccueil(window,mat);
-    window.finishFrame();
-    this_thread::sleep_for(chrono::milliseconds(5000 / FPS_LIMIT));
-    cout << "yo";
-    unsigned objectif=1500,nbTour=0,nbTourMax=10;
-    score=0;
-    while(true){
-        FaireUnTourMingl(mat,score,window);
-        cout << "tu es au tour :" << nbTour << endl;
-        cout << "tu as "  << score << " points !" << endl;
-        nbTour=nbTour+1;
-        if(nbTour == nbTourMax){
-            cout << "désolé ta perdu :(" << endl;
-                break;
-        }
-        if(score>=objectif){
-            cout << "ta gagné gg !!!" << endl;
-                break;
-        }
-    }
-}
 
+}
 
 
 int main() {
-    //MinGL Candy_Crush("Candy_Crush", nsGraphics::Vec2D(1920,1080), nsGraphics::Vec2D(1920, 1080), nsGraphics::KBlack);
-    //Candy_Crush.initGlut();
-    //Candy_Crush.initGraphic();
-    //CMatrice mat;
-    //initMat(mat,5,5);
-    //EcranAccueil(Candy_Crush,mat);
-    /*while (Candy_Crush.isOpen())
-    {
-        // Récupère l'heure actuelle
-        //Niveau_1V2_mingl(Candy_Crush,mat);
-
-        chrono::time_point<chrono::steady_clock> start = chrono::steady_clock::now();
-
-        // On efface la fenêtre
-        Candy_Crush.clearScreen();
-
-        // On dessine les formes géométriques
-        //EcranAccueil(Candy_Crush,mat);
-        Niveau_1V2_mingl(Candy_Crush,mat);
-
-        // On finit la frame en cours
-        Candy_Crush.finishFrame();
-
-        // On vide la queue d'évènements
-        Candy_Crush.getEventManager().clearEvents();
-
-        // On attend un peu pour limiter le framerate et soulager le CPU
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
-
-        // On récupère le temps de frame
-        //frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
-
-    }*/
-   // EcranAccueil(Candy_Crush);
-    Niveau_1V2();
-
+    Niveau_3();
 }
