@@ -1,3 +1,4 @@
+#include "mingl/gui/text.h"
 #define FPS_LIMIT 60
 #include <iostream>
 #include <vector>
@@ -65,6 +66,7 @@ struct CMyParam {
     std::map <std::string, char> mapParamChar;
     std::map <std::string, unsigned> mapParamUnsigned;
 };
+
 
 void initParams (CMyParam & Param)
 {
@@ -152,8 +154,6 @@ void afficheMatriceV0( const CMatrice & Mat  ){
 }
 
 void afficheMatrice_Interface_G(const CMatrice & Mat,MinGL & window){
-    window.clearScreen();
-    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
     unsigned coord_colonne=200;
     for(unsigned k=0;k<Mat.size();k=k+1){
         unsigned coord_ligne=250;
@@ -186,6 +186,19 @@ void afficheMatrice_Interface_G(const CMatrice & Mat,MinGL & window){
     }
 }
 
+void affiche_niveau1(const CMatrice & Mat,MinGL & window,const unsigned & score,const unsigned & nbTourRestant,const unsigned & objectif){
+    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
+    afficheMatrice_Interface_G(Mat,window);
+    window << nsShape::Rectangle(nsGraphics::Vec2D(1100,100),nsGraphics::Vec2D(1550,700),nsGraphics::KMagenta);
+    window << nsGui::Text(nsGraphics::Vec2D(1270,200),std::string("Niveau 1"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1150,300),std::string("Score :"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1250,300),std::string(to_string(score)),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1150,400),std::string("Nombre de tour restant : "),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1420,400),std::string(to_string(nbTourRestant)),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1150,500),std::string("objectif a atteindre :"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1380,500),std::string(to_string(objectif)),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+}
+
 //***********************************************************************************/
 //***********************    R1.01 – Prog#10 Exercice 2   ***************************/
 //***********************************************************************************/
@@ -199,10 +212,6 @@ void explositionUneBombeHorizontale (CMatrice & mat, const size_t & numLigne,con
             mat[k][i]=mat[k-1][i];
         }
     }
-    /* for(unsigned i=numColonne;i<combien+numColonne;i=i+1){
-        mat[0][i]=KAIgnorer;
-    }*/
-    // deuxieme version ou il y a des fruits qui reviennent
     for(unsigned i=numColonne;i<combien+numColonne;i=i+1){
         mat[0][i]=1+rand()%(nbMax - 1 + 1);
     }
@@ -257,11 +266,6 @@ void explositionUneBombeVertical (CMatrice & mat, const size_t & numLigne,const 
     for(unsigned i=0;i<combien;i=i+1){
         mat[i][numColonne]=1+rand()%(nbMax - 1 + 1);
     }
-    // deuxieme version ou il y a des fruits qui reviennent
-    /*    for(unsigned i=numColonne;i<combien+numColonne;i=i+1){
-        mat[0][i]=1+rand()%(nbMax - 1 + 1);
-    }*/
-
 }
 
 bool detectionExplositionUneBombeVertical (CMatrice & mat,unsigned & score){
@@ -306,7 +310,6 @@ bool detectionExplositionUneBombeVertical (CMatrice & mat,unsigned & score){
 void faitUnMouvement (CMatrice & mat, const char & deplacment, const size_t & numLigne,
                      const size_t & numCol, const CMyParam & param) {
     size_t nouvellePositionLigne (numLigne), nouvellePositionColonne (numCol);
-    cout<<"Tu choisis A ou Z ou E  ou Q ou D ou W ou X ou C"<<endl;
     auto it (param.mapParamChar.begin());
     for ( ; it != param.mapParamChar.end() && it ->second != tolower(deplacment); ++it){
     }
@@ -346,54 +349,13 @@ void faitUnMouvement (CMatrice & mat, const char & deplacment, const size_t & nu
 }
 
 
-int ppalExo03 (){
-    CMatrice mat;
-    initMat(mat,10,10);
-    unsigned score=0;
-    // affichage de la matrice sans les numéros de lignes / colonnes en haut / à gauche
-    afficheMatriceV0(mat);
-    detectionExplositionUneBombeVertical(mat,score);
-
-    while (detectionExplositionUneBombeVertical(mat,score)==true) {
-        cout << "bonjour" << endl;
-        //zafficheMatriceV0 (mat);
-    }
-    return 0;
-}
-
-int ppalExo04 (){
-    CMatrice mat;
-    initMat(mat,10,10);
-    // affichage de la matrice sans les numéros de lignes / colonnes en haut / à gauche
-    //detectionExplositionUneBombeHorizontale (mat);
-    //afficheMatriceV2 (mat);
-    //condition de victoire a trouver
-    while (true) {
-        afficheMatriceV0 (mat);
-        cout << "Fait un mouvement ";
-        cout << "numero de ligne : "<<endl;
-        size_t numLigne;
-        cin >> numLigne;
-        cout << "numero de colonne : "<<endl;
-        size_t numCol;
-        cin >> numCol;
-        cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
-        char deplacement;
-        cin >> deplacement;
-        //faitUnMouvement (mat, deplacement, numLigne, numCol);
-        //detectionExplositionUneBombeHorizontale (mat);
-        afficheMatriceV0 (mat);
-    }
-    return 0;
-}
-
-void FaireUnTour(CMatrice & mat,unsigned & score,CMyParam Param){
-    cout << Param.mapParamChar["toucheBasDroite"] << endl;
+void FaireUnTour(CMatrice & mat,unsigned & score){
     afficheMatriceV0 (mat);
     CMyParam Param;
     string fichier="config.yaml";
     initParams(Param);
     chargerConfig(Param,fichier);
+    cout << Param.mapParamChar["MouvementHautGauche"] << endl;
     cout << "Fait un mouvement ";
     cout << "numero de ligne : "<<endl;
     size_t numLigne;
@@ -401,7 +363,8 @@ void FaireUnTour(CMatrice & mat,unsigned & score,CMyParam Param){
     cout << "numero de colonne : "<<endl;
     size_t numCol;
     cin >> numCol;
-    cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
+    cout << "Sens du deplacement : (" << Param.mapParamChar["toucheHautGauche"] << "|" << Param.mapParamChar["toucheHaut"] << "|" << Param.mapParamChar["toucheHautDroite"]
+         << "|" << Param.mapParamChar["toucheGauche"] << "|" << Param.mapParamChar["toucheDroite"] << "|" << Param.mapParamChar["toucheBasDroite"] << "|" << Param.mapParamChar["toucheBas"] << "|" << Param.mapParamChar["toucheBasDroite"] << ")" << endl;
     char deplacement;
     cin >> deplacement;
     faitUnMouvement (mat, deplacement, numLigne, numCol,Param);
@@ -482,10 +445,37 @@ void cree_niveau(){
     }
 }
 
-void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window){
+void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window,unsigned taille_grille){
+    afficheMatriceV0(mat);
     afficheMatrice_Interface_G(mat,window);
     window.finishFrame();
-    this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT));
+    this_thread::sleep_for(chrono::milliseconds(10000 / FPS_LIMIT));
+    CMyParam Param;
+    string fichier="config.yaml";
+    initParams(Param);
+    chargerConfig(Param,fichier);
+    while(true){
+        window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string("Choisi la Ligne du joyau que tu souhaites bouger (de 0 au nombre de ligne-1)"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+        for(unsigned k=0;k<taille_grille;k=k+1){
+            char char_a_tester=k;
+            if(window.isPressed({char_a_tester,false})){
+                    string texte="La ligne choisi est : ";
+                    texte.push_back(char_a_tester);
+                    window << nsGui::Text(nsGraphics::Vec2D(400,900),std::string(texte),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+                    window.finishFrame();
+                    break;
+            }
+        }
+        window.finishFrame();
+    }
+    /*char toucheHautGauche=Param.mapParamChar["toucheHautGauche"],toucheHaut=Param.mapParamChar["toucheHaut"],toucheHautDroite=Param.mapParamChar["toucheHautDroite"];
+
+    string text="Sens du deplacement : ("+ Param.mapParamChar["toucheHautGauche"]+ "|" +Param.mapParamChar["toucheHaut"] +"|" + Param.mapParamChar["toucheHautDroite"]
+                  + "|"+  Param.mapParamChar["toucheGauche"] + "|"+ Param.mapParamChar["toucheDroite"] + "|" + Param.mapParamChar["toucheBasDroite"] + "|" + Param.mapParamChar["toucheBas"] + "|" + Param.mapParamChar["toucheBasDroite"] + ")";
+    cout << text << endl;
+    cout << Param.mapParamChar["toucheHautGauche"] << Param.mapParamChar["toucheHautGauche"] << endl;
+    window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string(text),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window.finishFrame();*/
     cout << "Fait un mouvement ";
     cout << "numero de ligne : "<<endl;
     size_t numLigne;
@@ -493,16 +483,15 @@ void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window){
     cout << "numero de colonne : "<<endl;
     size_t numCol;
     cin >> numCol;
-    cout << "Sens du deplacement : (A|Z|E|Q|D|W|X|C) : " << endl;
+    cout << "Sens du deplacement : (" << Param.mapParamChar["toucheHautGauche"] << "|" << Param.mapParamChar["toucheHaut"] << "|" << Param.mapParamChar["toucheHautDroite"]
+         << "|" << Param.mapParamChar["toucheGauche"] << "|" << Param.mapParamChar["toucheDroite"] << "|" << Param.mapParamChar["toucheBasDroite"] << "|" << Param.mapParamChar["toucheBas"] << "|" << Param.mapParamChar["toucheBasDroite"] << ")" << endl;
     char deplacement;
     cin >> deplacement;
-    //faitUnMouvement (mat, deplacement, numLigne, numCol);
-    //detectionExplositionUneBombeHorizontale (mat);
-    //afficheMatriceV0 (mat);
+    faitUnMouvement(mat, deplacement, numLigne, numCol,Param);
     while(true){
         afficheMatrice_Interface_G(mat,window);
         window.finishFrame();
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT));
+        this_thread::sleep_for(chrono::milliseconds(10000 / FPS_LIMIT));
         if(detectionExplositionUneBombeVertical(mat,score)==false && detectionExplositionUneBombeHorizontale(mat,score)==false) {
             break;
         }
@@ -535,30 +524,40 @@ void Niveau_1V2(){
 }
 
 void EcranAccueil(MinGL & window,CMatrice mat){
-    //window << nsShape::Triangle(nsGraphics::Vec2D(300, 420), nsGraphics::Vec2D(500, 420), nsGraphics::Vec2D(400, 220), nsGraphics::KYellow);
     window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
-    //window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-1-reussi",nsGraphics::Vec2D(700,700));
-    //window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-2-reussi",nsGraphics::Vec2D(200,200));
     afficheMatrice_Interface_G(mat,window);
-    mat[0][0]=mat[0][2];
-    this_thread::sleep_for(chrono::milliseconds(10000 / FPS_LIMIT));
+    this_thread::sleep_for(chrono::milliseconds(5000 / FPS_LIMIT));
     window.finishFrame();
-    afficheMatrice_Interface_G(mat,window);
 }
 
-void Niveau_1V2_mingl(MinGL & window,CMatrice & mat){
+void VraiEcranAccueil(MinGL & window){
+    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
+    window << nsShape::Rectangle(nsGraphics::Vec2D(530,230),nsGraphics::Vec2D(1400,550),nsGraphics::KMagenta);
+    window << nsGui::Text(nsGraphics::Vec2D(870,150),std::string("Jewel Crush"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(570,350),std::string("Jeu de type 'Candy Crush' devellope par Evan, Mariam, Badiss, Noah et Edson"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(650,450),std::string("3 niveaux disponibles pour l'instant auquel vous acces ci-dessous : "),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsShape::Rectangle(nsGraphics::Vec2D(10,700),nsGraphics::Vec2D(630,1000),nsGraphics::KMagenta);
+    window << nsShape::Rectangle(nsGraphics::Vec2D(650,700),nsGraphics::Vec2D(1270,1000),nsGraphics::KMagenta);
+    window << nsShape::Rectangle(nsGraphics::Vec2D(1290,700),nsGraphics::Vec2D(1910,1000),nsGraphics::KMagenta);
+    window << nsGui::Text(nsGraphics::Vec2D(280,850),std::string("Niveau 1"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(920,850),std::string("Niveau 2"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1570,850),std::string("Niveau 3"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window.finishFrame();
+    cout << "coucouaaa" << endl;
+}
+
+void Niveau_1_mingl(MinGL & window,CMatrice & mat){
     unsigned score=0;
     while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
     }
-    EcranAccueil(window,mat);
-    window.finishFrame();
-    this_thread::sleep_for(chrono::milliseconds(5000 / FPS_LIMIT));
-    cout << "yo";
     unsigned objectif=1500,nbTour=0,nbTourMax=10;
     score=0;
     while(true){
-        FaireUnTourMingl(mat,score,window);
-        cout << "tu es au tour :" << nbTour << endl;
+        unsigned nbTourRestant=nbTourMax-nbTour;
+        affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+        window.finishFrame();
+        FaireUnTourMingl(mat,score,window,mat.size());
+        cout << "tu es au tour : " << nbTour << endl;
         cout << "tu as "  << score << " points !" << endl;
         nbTour=nbTour+1;
         if(nbTour == nbTourMax){
@@ -572,29 +571,46 @@ void Niveau_1V2_mingl(MinGL & window,CMatrice & mat){
     }
 }
 
-
+void FaireUnclick(MinGL & window,CMatrice mat){
+    if(nsEvent::MouseClick){
+        cout << "bonjour" << endl;
+    }
+}
 
 int main() {
-    //MinGL Candy_Crush("Candy_Crush", nsGraphics::Vec2D(1920,1080), nsGraphics::Vec2D(1920, 1080), nsGraphics::KBlack);
-    //Candy_Crush.initGlut();
-    //Candy_Crush.initGraphic();
-    //CMatrice mat;
-    //initMat(mat,5,5);
+    MinGL Candy_Crush("Candy_Crush", nsGraphics::Vec2D(1920,1080), nsGraphics::Vec2D(1920, 1080), nsGraphics::KBlack);
+    Candy_Crush.initGlut();
+    Candy_Crush.initGraphic();
+    CMatrice mat;
+    initMat(mat,5,5);
     //EcranAccueil(Candy_Crush,mat);
-    /*while (Candy_Crush.isOpen())
+    nsEvent::MouseMoveData_t souris_info;
+    souris_info.x=nsEvent::MouseClick;
+    while (Candy_Crush.isOpen())
     {
+        VraiEcranAccueil(Candy_Crush);
+        unsigned niveau_choisi = 0;
+        if(Candy_Crush.isPressed({'&',false}) || Candy_Crush.isPressed({'1',false}) ){
+            niveau_choisi=1;
+        }
+        if(Candy_Crush.isPressed({'a',false}) || Candy_Crush.isPressed({'b',false}) ){
+            cout << "coucou" << endl;
+        }
+        if(niveau_choisi==1){
+                Niveau_1_mingl(Candy_Crush,mat);
+        }
+        cout << "yo" << endl;
         // Récupère l'heure actuelle
         //Niveau_1V2_mingl(Candy_Crush,mat);
-
         chrono::time_point<chrono::steady_clock> start = chrono::steady_clock::now();
+        //FaireUnclick(Candy_Crush,mat);
 
         // On efface la fenêtre
-        Candy_Crush.clearScreen();
+        // Candy_Crush.clearScreen();
 
         // On dessine les formes géométriques
         //EcranAccueil(Candy_Crush,mat);
-        Niveau_1V2_mingl(Candy_Crush,mat);
-
+        //Niveau_1_mingl(Candy_Crush,mat);
         // On finit la frame en cours
         Candy_Crush.finishFrame();
 
@@ -602,13 +618,14 @@ int main() {
         Candy_Crush.getEventManager().clearEvents();
 
         // On attend un peu pour limiter le framerate et soulager le CPU
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
+        //this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
 
         // On récupère le temps de frame
         //frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
 
-    }*/
-   // EcranAccueil(Candy_Crush);
-    Niveau_1V2();
+    }
+    //EcranAccueil(Candy_Crush);
+
+    //Niveau_1V2();
 
 }
