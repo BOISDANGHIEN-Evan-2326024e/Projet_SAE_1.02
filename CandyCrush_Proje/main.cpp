@@ -1,4 +1,5 @@
 #include "mingl/gui/text.h"
+#include <unistd.h>
 #define FPS_LIMIT 60
 #include <iostream>
 #include <vector>
@@ -171,9 +172,7 @@ void afficheMatrice_Interface_G(const CMatrice & Mat,MinGL & window){
                 window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-4-reussi",nsGraphics::Vec2D(coord_ligne,coord_colonne));
             }
             if(Mat[k][i]==5){
-                couleur(KBleu);
-                cout << Mat[k][i];
-                couleur(KReset);
+                window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/lingot-dor",nsGraphics::Vec2D(coord_ligne,coord_colonne));
             }
             if(Mat[k][i]==0){
                 couleur(KBGRouge);
@@ -186,8 +185,21 @@ void afficheMatrice_Interface_G(const CMatrice & Mat,MinGL & window){
     }
 }
 
+void affiche_niveau2(const CMatrice & Mat,MinGL & window,const unsigned & nbTourRestant){
+    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
+    window << nsGui::Text(nsGraphics::Vec2D(30,30),std::string("Pour utiliser les touches du clavier il faut laisser la touche enfoncer un certain temps !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    afficheMatrice_Interface_G(Mat,window);
+    window << nsShape::Rectangle(nsGraphics::Vec2D(1100,100),nsGraphics::Vec2D(1550,700),nsGraphics::KMagenta);
+    window << nsGui::Text(nsGraphics::Vec2D(1270,200),std::string("Niveau 2"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1150,300),std::string("Objectif : "),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1250,300),std::string("Faire tomber le lingot d'or tout en bas"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1150,400),std::string("Nombre de tour restant : "),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1420,400),std::string(to_string(nbTourRestant)),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+}
+
 void affiche_niveau1(const CMatrice & Mat,MinGL & window,const unsigned & score,const unsigned & nbTourRestant,const unsigned & objectif){
     window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
+    window << nsGui::Text(nsGraphics::Vec2D(30,30),std::string("Pour utiliser les touches du clavier il faut laisser la touche enfoncer un certain temps !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
     afficheMatrice_Interface_G(Mat,window);
     window << nsShape::Rectangle(nsGraphics::Vec2D(1100,100),nsGraphics::Vec2D(1550,700),nsGraphics::KMagenta);
     window << nsGui::Text(nsGraphics::Vec2D(1270,200),std::string("Niveau 1"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
@@ -377,27 +389,6 @@ void FaireUnTour(CMatrice & mat,unsigned & score){
     }
 }
 
-void Niveau_1(){
-    CMatrice mat;
-    initMat(mat,10,10);
-    unsigned score=0;
-    while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
-    }
-    unsigned objectif=1500,nbTour=0,nbTourMax=30;
-    score=0;
-    while(nbTour != nbTourMax || score<objectif){
-        FaireUnTour(mat,score);
-        cout << "tu es au tour :" << nbTour << endl;
-        cout << "tu as "  << score << " points !" << endl;
-        nbTour=nbTour+1;
-    }
-    if(nbTour == 30){
-        cout << "désolé ta perdu :(" << endl;
-    }
-    else{
-        cout << "ta gagné gg !!!" << endl;
-    }
-}
 
 void cree_niveau(){
     cout << "Tu va pouvoir crée ton niveau en déterminant la taille du plateau de jeu, le nombre de bonbon et enfin le mode de jeu que tu souhaites ( entre ceux qui sont disponiles )"<< endl;
@@ -445,53 +436,166 @@ void cree_niveau(){
     }
 }
 
-void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window,unsigned taille_grille){
+void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window,unsigned taille_grille,unsigned nbTourRestant,unsigned objectif,unsigned niveau){
     afficheMatriceV0(mat);
-    afficheMatrice_Interface_G(mat,window);
-    window.finishFrame();
-    this_thread::sleep_for(chrono::milliseconds(10000 / FPS_LIMIT));
+    if(niveau==1){
+        affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+    }
+    if(niveau==2){
+        affiche_niveau2(mat,window,nbTourRestant);
+    }
     CMyParam Param;
     string fichier="config.yaml";
     initParams(Param);
     chargerConfig(Param,fichier);
+    vector<char> Paramfichier;
+    Paramfichier.push_back(Param.mapParamChar["toucheHautGauche"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheHaut"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheHautDroite"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheGauche"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheDroite"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheBasGauche"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheBas"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheBasGauche"]);
+    char deplacement;
+    size_t NumLigne,NumCol;
+    window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string("Choisi la ligne du joyau que tu souhaites bouger (de 0 au nombre de ligne-1)"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window.finishFrame();
     while(true){
-        window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string("Choisi la Ligne du joyau que tu souhaites bouger (de 0 au nombre de ligne-1)"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+        bool quitte=false;
         for(unsigned k=0;k<taille_grille;k=k+1){
-            char char_a_tester=k;
+            string t = to_string(k);
+            char char_a_tester=t[0];
+            cout << char_a_tester << endl;
+            cout << "yo" << endl;
             if(window.isPressed({char_a_tester,false})){
+                    cout << "bonjour" << endl;
                     string texte="La ligne choisi est : ";
                     texte.push_back(char_a_tester);
+                    if(niveau==1){
+                    affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+                    }
+                    if(niveau==2){
+                    affiche_niveau2(mat,window,nbTourRestant);
+                    }
                     window << nsGui::Text(nsGraphics::Vec2D(400,900),std::string(texte),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+                    using std::this_thread::sleep_for;
+                    sleep_for(std::chrono::milliseconds(1000));
                     window.finishFrame();
-                    break;
+                    NumLigne=k;
+                    quitte=true;
             }
+            using std::this_thread::sleep_for;
+            sleep_for(std::chrono::milliseconds(200));
+            window.finishFrame();
+       }
+        if(quitte==true){
+            break;
+        }
+    }
+    if(niveau==1){
+        affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+    }
+    if(niveau==2){
+        affiche_niveau2(mat,window,nbTourRestant);
+    }
+    window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string("Choisi la colonne du joyau que tu souhaites bouger (de 0 au nombre de ligne-1)"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window.finishFrame();
+    while(true){
+        bool quitte2=false;
+        for(unsigned k=0;k<taille_grille;k=k+1){
+            string t = to_string(k);
+            char char_a_tester=t[0];
+            if(window.isPressed({char_a_tester,false})){
+                    string texte="La colonne choisi est : ";
+                    texte.push_back(char_a_tester);
+                    if(niveau==1){
+                    affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+                    }
+                    if(niveau==2){
+                    affiche_niveau2(mat,window,nbTourRestant);
+                    }
+                    window << nsGui::Text(nsGraphics::Vec2D(400,900),std::string(texte),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+                    using std::this_thread::sleep_for;
+                    sleep_for(std::chrono::milliseconds(1000));
+                    window.finishFrame();
+                    NumCol=k;
+                    quitte2=true;
+            }
+            using std::this_thread::sleep_for;
+            sleep_for(std::chrono::milliseconds(200));
+            window.finishFrame();
+        }
+        if(quitte2==true){
+            break;
+        }
+    }
+    string texte_direction="Choisi la direction dans laquelle tu veux que le joyau bouge entre : ";
+    texte_direction.push_back(Param.mapParamChar["toucheHautGauche"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheHaut"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheHautDroite"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheGauche"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheDroite"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheBasGauche"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheBas"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheBasDroite"]);
+    texte_direction.push_back('.');
+    if(niveau==1){
+        affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+    }
+    if(niveau==2){
+        affiche_niveau2(mat,window,nbTourRestant);
+    }
+    window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string(texte_direction),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window.finishFrame();
+    while(true){
+        bool quitte3=false;
+        for(unsigned k=0;k<Paramfichier.size();k=k+1){
+            cout << Paramfichier[k] << endl;
+            if(window.isPressed({Paramfichier[k],false})){
+                    deplacement=Paramfichier[k];
+                    quitte3=true;
+            }
+            window.finishFrame();
+            using std::this_thread::sleep_for;
+            sleep_for(std::chrono::milliseconds(200));
+        }
+        if(quitte3==true){
+            break;
+        }
+    }
+    faitUnMouvement(mat, deplacement, NumLigne, NumCol,Param);
+    while(true){
+        if(niveau==1){
+            affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+        }
+        if(niveau==2){
+            affiche_niveau2(mat,window,nbTourRestant);
         }
         window.finishFrame();
-    }
-    /*char toucheHautGauche=Param.mapParamChar["toucheHautGauche"],toucheHaut=Param.mapParamChar["toucheHaut"],toucheHautDroite=Param.mapParamChar["toucheHautDroite"];
-
-    string text="Sens du deplacement : ("+ Param.mapParamChar["toucheHautGauche"]+ "|" +Param.mapParamChar["toucheHaut"] +"|" + Param.mapParamChar["toucheHautDroite"]
-                  + "|"+  Param.mapParamChar["toucheGauche"] + "|"+ Param.mapParamChar["toucheDroite"] + "|" + Param.mapParamChar["toucheBasDroite"] + "|" + Param.mapParamChar["toucheBas"] + "|" + Param.mapParamChar["toucheBasDroite"] + ")";
-    cout << text << endl;
-    cout << Param.mapParamChar["toucheHautGauche"] << Param.mapParamChar["toucheHautGauche"] << endl;
-    window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string(text),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
-    window.finishFrame();*/
-    cout << "Fait un mouvement ";
-    cout << "numero de ligne : "<<endl;
-    size_t numLigne;
-    cin >> numLigne;
-    cout << "numero de colonne : "<<endl;
-    size_t numCol;
-    cin >> numCol;
-    cout << "Sens du deplacement : (" << Param.mapParamChar["toucheHautGauche"] << "|" << Param.mapParamChar["toucheHaut"] << "|" << Param.mapParamChar["toucheHautDroite"]
-         << "|" << Param.mapParamChar["toucheGauche"] << "|" << Param.mapParamChar["toucheDroite"] << "|" << Param.mapParamChar["toucheBasDroite"] << "|" << Param.mapParamChar["toucheBas"] << "|" << Param.mapParamChar["toucheBasDroite"] << ")" << endl;
-    char deplacement;
-    cin >> deplacement;
-    faitUnMouvement(mat, deplacement, numLigne, numCol,Param);
-    while(true){
-        afficheMatrice_Interface_G(mat,window);
-        window.finishFrame();
-        this_thread::sleep_for(chrono::milliseconds(10000 / FPS_LIMIT));
+        using std::this_thread::sleep_for;
+        sleep_for(std::chrono::milliseconds(200));
         if(detectionExplositionUneBombeVertical(mat,score)==false && detectionExplositionUneBombeHorizontale(mat,score)==false) {
             break;
         }
@@ -523,15 +627,11 @@ void Niveau_1V2(){
     }
 }
 
-void EcranAccueil(MinGL & window,CMatrice mat){
-    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
-    afficheMatrice_Interface_G(mat,window);
-    this_thread::sleep_for(chrono::milliseconds(5000 / FPS_LIMIT));
-    window.finishFrame();
-}
+
 
 void VraiEcranAccueil(MinGL & window){
     window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
+    window << nsGui::Text(nsGraphics::Vec2D(30,30),std::string("Pour utiliser les touches du clavier il faut laisser la touche enfoncer un certain temps !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
     window << nsShape::Rectangle(nsGraphics::Vec2D(530,230),nsGraphics::Vec2D(1400,550),nsGraphics::KMagenta);
     window << nsGui::Text(nsGraphics::Vec2D(870,150),std::string("Jewel Crush"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
     window << nsGui::Text(nsGraphics::Vec2D(570,350),std::string("Jeu de type 'Candy Crush' devellope par Evan, Mariam, Badiss, Noah et Edson"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
@@ -546,7 +646,9 @@ void VraiEcranAccueil(MinGL & window){
     cout << "coucouaaa" << endl;
 }
 
-void Niveau_1_mingl(MinGL & window,CMatrice & mat){
+void Niveau_1_mingl(MinGL & window){
+    CMatrice mat;
+    initMat(mat,5,5);
     unsigned score=0;
     while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
     }
@@ -554,26 +656,65 @@ void Niveau_1_mingl(MinGL & window,CMatrice & mat){
     score=0;
     while(true){
         unsigned nbTourRestant=nbTourMax-nbTour;
-        affiche_niveau1(mat,window,score,nbTourRestant,objectif);
-        window.finishFrame();
-        FaireUnTourMingl(mat,score,window,mat.size());
+        FaireUnTourMingl(mat,score,window,mat.size(),nbTourRestant,objectif,1);
         cout << "tu es au tour : " << nbTour << endl;
         cout << "tu as "  << score << " points !" << endl;
         nbTour=nbTour+1;
         if(nbTour == nbTourMax){
-            cout << "désolé ta perdu :(" << endl;
-                break;
+            affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+            window << nsGui::Text(nsGraphics::Vec2D(280,850),std::string("Désolé tu as perdu :( , Tu peux réessayer !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+            window.finishFrame();
+            using std::this_thread::sleep_for;
+            sleep_for(std::chrono::milliseconds(8000));
+            break;
         }
         if(score>=objectif){
-            cout << "ta gagné gg !!!" << endl;
-                break;
+            affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+            window << nsGui::Text(nsGraphics::Vec2D(280,850),std::string("Bien joué tu as gagné ! hésite pas a tester un autre niveau !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);                                                                                                                                   window.finishFrame();
+            using std::this_thread::sleep_for;
+            sleep_for(std::chrono::milliseconds(8000));
+            break;
         }
     }
 }
 
-void FaireUnclick(MinGL & window,CMatrice mat){
-    if(nsEvent::MouseClick){
-        cout << "bonjour" << endl;
+void Niveau_2_Mingl(MinGL & window){
+    CMatrice mat;
+    initMat(mat,8,8);
+    unsigned score=0;
+    while (detectionExplositionUneBombeVertical(mat,score)==true && detectionExplositionUneBombeHorizontale(mat,score)==true) {
+    }
+    unsigned objectif=1500,nbTour=0,nbTourMax=10;
+    score=0;
+    bool victoire;
+    mat[0][4]=5;
+    while(true){
+        unsigned nbTourRestant=nbTourMax-nbTour;
+        FaireUnTourMingl(mat,score,window,mat.size(),nbTourRestant,objectif,2);
+        cout << "tu es au tour :" << nbTour << endl;
+        cout << "tu as "  << score << " points !" << endl;
+        nbTour=nbTour+1;
+        if(nbTour == nbTourMax){
+            affiche_niveau2(mat,window,nbTourRestant);
+            window << nsGui::Text(nsGraphics::Vec2D(280,850),std::string("Désolé tu as perdu :( , Tu peux réessayer !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+            window.finishFrame();
+            using std::this_thread::sleep_for;
+            sleep_for(std::chrono::milliseconds(8000));
+            break;
+        }
+        for (unsigned k=0;k<mat[0].size()-1;k=k+1){
+            if(mat[mat.size()-1][k]==5){
+                victoire=true;
+                affiche_niveau1(mat,window,score,nbTourRestant,objectif);
+                window << nsGui::Text(nsGraphics::Vec2D(280,850),std::string("Bien joué tu as gagné ! hésite pas a tester un autre niveau !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);                                                                                                                                   window.finishFrame();
+                using std::this_thread::sleep_for;
+                sleep_for(std::chrono::milliseconds(8000));
+                break;
+            }
+        }
+        if (victoire==true){
+            break;
+        }
     }
 }
 
@@ -581,11 +722,6 @@ int main() {
     MinGL Candy_Crush("Candy_Crush", nsGraphics::Vec2D(1920,1080), nsGraphics::Vec2D(1920, 1080), nsGraphics::KBlack);
     Candy_Crush.initGlut();
     Candy_Crush.initGraphic();
-    CMatrice mat;
-    initMat(mat,5,5);
-    //EcranAccueil(Candy_Crush,mat);
-    nsEvent::MouseMoveData_t souris_info;
-    souris_info.x=nsEvent::MouseClick;
     while (Candy_Crush.isOpen())
     {
         VraiEcranAccueil(Candy_Crush);
@@ -593,39 +729,21 @@ int main() {
         if(Candy_Crush.isPressed({'&',false}) || Candy_Crush.isPressed({'1',false}) ){
             niveau_choisi=1;
         }
+        if(Candy_Crush.isPressed({'2',false}) ){
+            niveau_choisi=2;
+        }
         if(Candy_Crush.isPressed({'a',false}) || Candy_Crush.isPressed({'b',false}) ){
             cout << "coucou" << endl;
         }
         if(niveau_choisi==1){
-                Niveau_1_mingl(Candy_Crush,mat);
+                Niveau_1_mingl(Candy_Crush);
         }
-        cout << "yo" << endl;
-        // Récupère l'heure actuelle
-        //Niveau_1V2_mingl(Candy_Crush,mat);
-        chrono::time_point<chrono::steady_clock> start = chrono::steady_clock::now();
-        //FaireUnclick(Candy_Crush,mat);
-
-        // On efface la fenêtre
-        // Candy_Crush.clearScreen();
-
-        // On dessine les formes géométriques
-        //EcranAccueil(Candy_Crush,mat);
-        //Niveau_1_mingl(Candy_Crush,mat);
-        // On finit la frame en cours
+        if(niveau_choisi==2){
+                Niveau_2_Mingl(Candy_Crush);
+        }
         Candy_Crush.finishFrame();
 
         // On vide la queue d'évènements
         Candy_Crush.getEventManager().clearEvents();
-
-        // On attend un peu pour limiter le framerate et soulager le CPU
-        //this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
-
-        // On récupère le temps de frame
-        //frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
-
     }
-    //EcranAccueil(Candy_Crush);
-
-    //Niveau_1V2();
-
 }
