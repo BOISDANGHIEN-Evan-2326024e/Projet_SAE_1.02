@@ -17,10 +17,6 @@
 
 using namespace std;
 
-//***********************************************************************************/
-//***********************    R1.01 – Prog#10 Exercice 1   ***************************/
-//***********************************************************************************/
-
 typedef ushort contenueDUneCase;
 typedef vector <contenueDUneCase> CVLigne; // un type représentant une ligne de la grille
 typedef vector <CVLigne> CMatrice; // un type représentant la grille
@@ -211,6 +207,33 @@ void affiche_niveau1(const CMatrice & Mat,MinGL & window,const unsigned & score,
     window << nsGui::Text(nsGraphics::Vec2D(1380,500),std::string(to_string(objectif)),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
 }
 
+void affiche_niveau3(const CMatrice & Mat,MinGL & window,const unsigned & nbTourRestant,const unsigned & gemmeRestante,unsigned & gemmeADetruire){
+    window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/fond-ecran-jolie",nsGraphics::Vec2D(0,0));
+    window << nsGui::Text(nsGraphics::Vec2D(30,30),std::string("Pour utiliser les touches du clavier il faut laisser la touche enfoncer un certain temps !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    afficheMatrice_Interface_G(Mat,window);
+    window << nsShape::Rectangle(nsGraphics::Vec2D(1100,100),nsGraphics::Vec2D(1550,700),nsGraphics::KMagenta);
+    window << nsGui::Text(nsGraphics::Vec2D(1270,200),std::string("Niveau 3"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1150,300),std::string("Bonbon a casser :"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    if(gemmeADetruire==1){
+        window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-1-reussi",nsGraphics::Vec2D(1250,300));
+    }
+    if(gemmeADetruire==2){
+        window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-2-reussi",nsGraphics::Vec2D(1250,300));
+    }
+    if(gemmeADetruire==3){
+        window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-3-reussi",nsGraphics::Vec2D(1250,300));
+    }
+    if(gemmeADetruire==4){
+        window << nsGui::Sprite("/home/evan/Bureau/Projet candy crush/CandyCrush_Proje/gemme-4-reussi",nsGraphics::Vec2D(1250,300));
+    }
+    window << nsGui::Text(nsGraphics::Vec2D(1150,400),std::string("Nombre de bonbon restant a casse :"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+        window << nsGui::Text(nsGraphics::Vec2D(1300,440),std::string(to_string(gemmeRestante)),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1150,500),std::string("Nombre de tour restant : "),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window << nsGui::Text(nsGraphics::Vec2D(1440,500),std::string(to_string(nbTourRestant)),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+}
+
+
+
 //***********************************************************************************/
 //***********************    R1.01 – Prog#10 Exercice 2   ***************************/
 //***********************************************************************************/
@@ -311,14 +334,6 @@ bool detectionExplositionUneBombeVertical (CMatrice & mat,unsigned & score){
     return auMoinsUneExplosionVertical;
 }
 
-//***********************************************************************************/
-//***********************    R1.01 – Prog#10 Exercice 3   ***************************/
-//***********************************************************************************/
-
-
-//fait descendre toutes les cases d'une unité suite à une explosition
-
-
 void faitUnMouvement (CMatrice & mat, const char & deplacment, const size_t & numLigne,
                      const size_t & numCol, const CMyParam & param) {
     size_t nouvellePositionLigne (numLigne), nouvellePositionColonne (numCol);
@@ -389,6 +404,331 @@ void FaireUnTour(CMatrice & mat,unsigned & score){
     }
 }
 
+//Niveau 3
+
+bool detectionExplositionUneBombeHorizontaleGemme (CMatrice & mat, unsigned & gemmeRestante, const unsigned & gemmeADetruire){
+    bool auMoinsUneExplosionHorizontal=false;
+    for(unsigned k=0;k<mat.size();k=k+1){
+        size_t combienALaSuite=1;
+        unsigned gemmeEnCours=0;
+
+        for(unsigned i=0;i<mat[k].size();i=i+1){
+            if(mat[k][i]==KAIgnorer){
+                gemmeEnCours=0;
+                continue;
+            }
+            else if(mat[k][i]==gemmeEnCours){
+                combienALaSuite=combienALaSuite+1;
+            }
+            if (combienALaSuite >= 3){
+                unsigned numCol=i+1-combienALaSuite;
+                unsigned numLigne=k+1;
+                auMoinsUneExplosionHorizontal = true;
+                cout << "on a une suite en position numLigne = " << numLigne<< "; colonne = " << numCol<< "; sur  " << combienALaSuite << " cases" << endl;
+                cout << string (20, '-') << endl << "matrice avant suppresion et " << auMoinsUneExplosionHorizontal << endl;
+
+                afficheMatriceV0(mat);
+                cout << mat[k][i] << " est le chiffre de notre suppression et " << gemmeEnCours << " aussi" << endl;
+                if(gemmeADetruire == gemmeEnCours){
+                    gemmeRestante = gemmeRestante-3;
+                }
+                else{
+                    cout << "non";
+                }
+                explositionUneBombeHorizontale (mat, k, numCol, combienALaSuite);
+                cout << string (20, '-') << endl << "matrice après suppresion" << endl;
+                            afficheMatriceV0(mat);
+
+                cout << "il reste "<< gemmeRestante << " gemme(s)" << endl;
+
+                gemmeEnCours=mat[k][i];
+                combienALaSuite=1;
+
+            }
+            if(mat[k][i]!=gemmeEnCours){
+                gemmeEnCours=mat[k][i];
+                combienALaSuite=1;
+            }
+        }
+    }
+    return auMoinsUneExplosionHorizontal;
+}
+
+
+bool detectionExplositionUneBombeVerticalGemme (CMatrice & mat,unsigned & gemmeRestante, const unsigned gemmeADetruire){
+    bool auMoinsUneExplosionVertical=false;
+    for(unsigned k=0;k<mat.size()-2;k=k+1){
+        for(unsigned i=0;i<mat[0].size();i=i+1){
+            size_t combienALaSuite=1;
+            unsigned gemmeEnCours=mat[k][i];
+            while(mat[k+combienALaSuite][i]==gemmeEnCours && k+combienALaSuite<mat.size()-1){
+                combienALaSuite=combienALaSuite+1;
+                if(mat[k][i]==KAIgnorer){
+                    gemmeEnCours=0;
+                    break;
+                }
+                if(combienALaSuite >= 3){
+                    size_t numCol=i;
+                    size_t numLigne=k+combienALaSuite;
+                    auMoinsUneExplosionVertical=true;
+                    cout << " on a une suite en position numLigne = " << numLigne<< "; colonne = " << numCol<< "; sur  " << combienALaSuite << " cases" << endl;
+                    cout << string (20, '-') << endl << "matrice avant suppresion" << endl;
+                    afficheMatriceV0(mat);
+                    cout << mat[k][i] << " est le chiffre de notre suppression" << endl;
+                    if(gemmeADetruire == gemmeEnCours){
+                        gemmeRestante = gemmeRestante-3;
+                    }
+                    else{
+                        cout << "nonV";
+                    }
+
+                    explositionUneBombeVertical(mat, numLigne, numCol, combienALaSuite);
+                    cout << string (20, '-') << endl << "matrice après suppresion" << endl;
+                                afficheMatriceV0(mat);
+                    if(gemmeADetruire == mat[k][i]){
+                        gemmeRestante = gemmeRestante - 3;
+                    }
+
+
+                    break;
+                }
+            }
+        }
+    }
+    return auMoinsUneExplosionVertical;
+}
+
+void FaireUnTourGemme(CMatrice & mat,unsigned & gemmeRestante, const unsigned & gemmeADetruire){
+    afficheMatriceV0 (mat);
+    CMyParam Param;
+    string fichier="config.yaml";
+    initParams(Param);
+    chargerConfig(Param,fichier);
+    cout << Param.mapParamChar["MouvementHautGauche"] << endl;
+    cout << "Fait un mouvement ";
+    cout << "numero de ligne : "<<endl;
+    size_t numLigne;
+    cin >> numLigne;
+    cout << "numero de colonne : "<<endl;
+    size_t numCol;
+    cin >> numCol;
+    cout << "Sens du deplacement : (" << Param.mapParamChar["toucheHautGauche"] << "|" << Param.mapParamChar["toucheHaut"] << "|" << Param.mapParamChar["toucheHautDroite"]
+         << "|" << Param.mapParamChar["toucheGauche"] << "|" << Param.mapParamChar["toucheDroite"] << "|" << Param.mapParamChar["toucheBasDroite"] << "|" << Param.mapParamChar["toucheBas"] << "|" << Param.mapParamChar["toucheBasDroite"] << ")" << endl;
+    char deplacement;
+    cin >> deplacement;
+    faitUnMouvement (mat, deplacement, numLigne, numCol,Param);
+    //detectionExplositionUneBombeHorizontale (mat);
+    //afficheMatriceV0 (mat);
+    while(detectionExplositionUneBombeVerticalGemme(mat,gemmeRestante, gemmeADetruire) == true || detectionExplositionUneBombeHorizontaleGemme(mat, gemmeRestante, gemmeADetruire) == true){
+    }
+}
+
+//(rand() % (max-min+1)) + min
+
+
+
+//Fonction du niveau en particulier
+void Niveau_3(){
+    CMatrice mat;
+    initMat(mat,7,7);
+    unsigned gemmeRestante = 0, gemmeADetruire = (rand() % (4-1+1))+1;
+    while (detectionExplositionUneBombeVerticalGemme(mat, gemmeRestante, gemmeADetruire)==true
+           || detectionExplositionUneBombeHorizontaleGemme(mat, gemmeRestante, gemmeADetruire)==true){}
+    cout << endl <<  "Initialisation complete." << endl << gemmeRestante << " gemmes restantes avant commencer." << endl;
+    gemmeRestante = 50;
+    cout << gemmeRestante << " pour le début de la partie. C'est partie !!!" << endl << endl;
+    cout << "Bienvenue dans le mode de jeu Gemme" << endl << endl << "La gemme a détruire est : " << gemmeADetruire << endl;
+    unsigned nbTour=0,nbTourMax=20;
+    while(true){
+        nbTour = nbTour + 1;
+        FaireUnTourGemme(mat, gemmeRestante, gemmeADetruire);
+        cout << "tu es au tour :" << nbTour << endl;
+        cout << "il ne te reste plus que "  << gemmeRestante << " gemme numéro " << gemmeADetruire << " à détruire !" << endl;
+                nbTour=nbTour+1;
+        if(gemmeRestante <= 0){
+            cout << "tu as gagné gg !!!" << endl;
+                break;
+        }
+        else if(nbTour == nbTourMax){
+            cout << "désolé ta perdu :(" << endl;
+                break;
+        }
+
+    }
+}
+
+void FaireUnTourMingl_Niveau3(CMatrice & mat,MinGL & window,const unsigned taille_grille,unsigned & nbTourRestant,unsigned & gemmeRestante,unsigned & gemmeADetruire){
+    afficheMatriceV0(mat);
+    affiche_niveau3(mat,window,nbTourRestant,gemmeRestante,gemmeADetruire);
+    CMyParam Param;
+    string fichier="config.yaml";
+    initParams(Param);
+    chargerConfig(Param,fichier);
+    vector<char> Paramfichier;
+    Paramfichier.push_back(Param.mapParamChar["toucheHautGauche"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheHaut"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheHautDroite"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheGauche"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheDroite"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheBasGauche"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheBas"]);
+    Paramfichier.push_back(Param.mapParamChar["toucheBasGauche"]);
+    char deplacement;
+    size_t NumLigne,NumCol;
+    window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string("Choisi la ligne du joyau que tu souhaites bouger (de 0 au nombre de ligne-1)"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window.finishFrame();
+    while(true){
+        bool quitte=false;
+        for(unsigned k=0;k<taille_grille;k=k+1){
+                string t = to_string(k);
+                char char_a_tester=t[0];
+                cout << char_a_tester << endl;
+                cout << "yo" << endl;
+                if(window.isPressed({char_a_tester,false})){
+                cout << "bonjour" << endl;
+                string texte="La ligne choisi est : ";
+                texte.push_back(char_a_tester);
+                affiche_niveau3(mat,window,nbTourRestant,gemmeRestante,gemmeADetruire);
+                window << nsGui::Text(nsGraphics::Vec2D(400,900),std::string(texte),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+                using std::this_thread::sleep_for;
+                sleep_for(std::chrono::milliseconds(1000));
+                window.finishFrame();
+                NumLigne=k;
+                quitte=true;
+                }
+                using std::this_thread::sleep_for;
+                sleep_for(std::chrono::milliseconds(200));
+                window.finishFrame();
+        }
+        if(quitte==true){
+                break;
+        }
+    }
+    affiche_niveau3(mat,window,nbTourRestant,gemmeRestante,gemmeADetruire);
+    window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string("Choisi la colonne du joyau que tu souhaites bouger (de 0 au nombre de ligne-1)"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window.finishFrame();
+    while(true){
+        bool quitte2=false;
+        for(unsigned k=0;k<taille_grille;k=k+1){
+                string t = to_string(k);
+                char char_a_tester=t[0];
+                if(window.isPressed({char_a_tester,false})){
+                string texte="La colonne choisi est : ";
+                texte.push_back(char_a_tester);
+                affiche_niveau3(mat,window,nbTourRestant,gemmeRestante,gemmeADetruire);
+                window << nsGui::Text(nsGraphics::Vec2D(400,900),std::string(texte),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+                using std::this_thread::sleep_for;
+                sleep_for(std::chrono::milliseconds(1000));
+                window.finishFrame();
+                NumCol=k;
+                quitte2=true;
+                }
+                using std::this_thread::sleep_for;
+                sleep_for(std::chrono::milliseconds(200));
+                window.finishFrame();
+        }
+        if(quitte2==true){
+                break;
+        }
+    }
+    string texte_direction="Choisi la direction dans laquelle tu veux que le joyau bouge entre : ";
+    texte_direction.push_back(Param.mapParamChar["toucheHautGauche"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheHaut"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheHautDroite"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheGauche"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheDroite"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheBasGauche"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheBas"]);
+    texte_direction.push_back(' ');
+    texte_direction.push_back('|');
+    texte_direction.push_back(' ');
+    texte_direction.push_back(Param.mapParamChar["toucheBasDroite"]);
+    texte_direction.push_back('.');
+    affiche_niveau3(mat,window,nbTourRestant,gemmeRestante,gemmeADetruire);
+    window << nsGui::Text(nsGraphics::Vec2D(400,850),std::string(texte_direction),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+    window.finishFrame();
+    while(true){
+        bool quitte3=false;
+        for(unsigned k=0;k<Paramfichier.size();k=k+1){
+                cout << Paramfichier[k] << endl;
+                if(window.isPressed({Paramfichier[k],false})){
+                deplacement=Paramfichier[k];
+                quitte3=true;
+                }
+                window.finishFrame();
+                using std::this_thread::sleep_for;
+                sleep_for(std::chrono::milliseconds(200));
+        }
+        if(quitte3==true){
+                break;
+        }
+    }
+    faitUnMouvement(mat, deplacement, NumLigne, NumCol,Param);
+    while(true){
+        affiche_niveau3(mat,window,nbTourRestant,gemmeRestante,gemmeADetruire);
+        window.finishFrame();
+        using std::this_thread::sleep_for;
+        sleep_for(std::chrono::milliseconds(200));
+        if(detectionExplositionUneBombeVerticalGemme(mat, gemmeRestante, gemmeADetruire)==false && detectionExplositionUneBombeHorizontaleGemme(mat, gemmeRestante, gemmeADetruire)==false) {
+                break;
+        }
+
+    }
+}
+
+void Niveau_3_Mingl(MinGL & window){
+    CMatrice mat;
+    initMat(mat,7,7);
+    unsigned gemmeRestante = 0, gemmeADetruire = (rand() % (4-1+1))+1;
+    while (detectionExplositionUneBombeVerticalGemme(mat, gemmeRestante, gemmeADetruire)==true
+           || detectionExplositionUneBombeHorizontaleGemme(mat, gemmeRestante, gemmeADetruire)==true){}
+    cout << endl <<  "Initialisation complete." << endl << gemmeRestante << " gemmes restantes avant commencer." << endl;
+    gemmeRestante = 50;
+    cout << gemmeRestante << " pour le début de la partie. C'est partie !!!" << endl << endl;
+    cout << "Bienvenue dans le mode de jeu Gemme" << endl << endl << "La gemme a détruire est : " << gemmeADetruire << endl;
+    unsigned nbTour=0,nbTourMax=20;
+    while(true){
+        unsigned nbTourRestant=nbTourMax-nbTour;
+        FaireUnTourMingl_Niveau3(mat,window,mat[0].size(),nbTourRestant,gemmeRestante, gemmeADetruire);
+        cout << "tu es au tour :" << nbTour << endl;
+        cout << "il ne te reste plus que "  << gemmeRestante << " gemme numéro " << gemmeADetruire << " à détruire !" << endl;
+        nbTour=nbTour+1;
+        if(gemmeRestante <= 0){
+            affiche_niveau3(mat,window,nbTourRestant,gemmeRestante,gemmeADetruire);
+            window << nsGui::Text(nsGraphics::Vec2D(280,850),std::string("Bien joué tu as gagné ! hésite pas a tester un autre niveau !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);                                                                                                                                   window.finishFrame();
+            using std::this_thread::sleep_for;
+            sleep_for(std::chrono::milliseconds(8000));
+            break;
+        }
+        else if(nbTour == nbTourMax){
+            affiche_niveau3(mat,window,nbTourRestant,gemmeRestante,gemmeADetruire);
+            window << nsGui::Text(nsGraphics::Vec2D(280,850),std::string("Désolé tu as perdu :( , Tu peux réessayer !"),nsGraphics::KBlue,nsGui::GlutFont::GlutFonts::BITMAP_TIMES_ROMAN_24);
+            window.finishFrame();
+            using std::this_thread::sleep_for;
+            sleep_for(std::chrono::milliseconds(8000));
+            break;
+        }
+
+    }
+}
 
 void cree_niveau(){
     cout << "Tu va pouvoir crée ton niveau en déterminant la taille du plateau de jeu, le nombre de bonbon et enfin le mode de jeu que tu souhaites ( entre ceux qui sont disponiles )"<< endl;
@@ -436,7 +776,7 @@ void cree_niveau(){
     }
 }
 
-void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window,unsigned taille_grille,unsigned nbTourRestant,unsigned objectif,unsigned niveau){
+void FaireUnTourMingl(CMatrice & mat,unsigned & score,MinGL & window,const unsigned taille_grille,const unsigned & nbTourRestant,const unsigned & objectif,const unsigned & niveau){
     afficheMatriceV0(mat);
     if(niveau==1){
         affiche_niveau1(mat,window,score,nbTourRestant,objectif);
@@ -718,6 +1058,7 @@ void Niveau_2_Mingl(MinGL & window){
     }
 }
 
+
 int main() {
     MinGL Candy_Crush("Candy_Crush", nsGraphics::Vec2D(1920,1080), nsGraphics::Vec2D(1920, 1080), nsGraphics::KBlack);
     Candy_Crush.initGlut();
@@ -732,6 +1073,9 @@ int main() {
         if(Candy_Crush.isPressed({'2',false}) ){
             niveau_choisi=2;
         }
+        if(Candy_Crush.isPressed({'3',false}) || Candy_Crush.isPressed({'"',false})){
+            niveau_choisi=3;
+        }
         if(Candy_Crush.isPressed({'a',false}) || Candy_Crush.isPressed({'b',false}) ){
             cout << "coucou" << endl;
         }
@@ -741,6 +1085,10 @@ int main() {
         if(niveau_choisi==2){
                 Niveau_2_Mingl(Candy_Crush);
         }
+        if(niveau_choisi==3){
+                Niveau_3_Mingl(Candy_Crush);
+        }
+
         Candy_Crush.finishFrame();
 
         // On vide la queue d'évènements
